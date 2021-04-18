@@ -23,7 +23,7 @@ threshold = (BLACK + WHITE) / 2
 PROPORTIONAL_GAIN = 4
 
 while True:
-    deviation = ((left_color.reflection() - threshold) + (right_color.reflection() - threshold)) / 2
+    deviation = ((left_color.reflection() - threshold)
     turn_rate = PROPORTIONAL_GAIN * deviation
     robot.drive(100, turn_rate)
 
