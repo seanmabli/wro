@@ -16,13 +16,14 @@ right_color = ColorSensor(Port.S3)
 robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=120)
 robot.settings(straight_speed=400, turn_rate=65)
 
-BLACK = 9
-WHITE = 70
-threshold = (BLACK + WHITE) / 2
+def LineFollowing():
+  BLACK = 9
+  WHITE = 70
+  threshold = (BLACK + WHITE) / 2
 
-PROPORTIONAL_GAIN = 4
+  PROPORTIONAL_GAIN = 4
 
-while True:
+  while True:
     deviation = ((left_color.reflection() - threshold)
     turn_rate = PROPORTIONAL_GAIN * deviation
     robot.drive(100, turn_rate)
