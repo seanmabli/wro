@@ -20,7 +20,11 @@ B | B | R | G
 
 self.Info[0, :, :]: Board Colors
 self.Info[1, :, :]: Location Occupied
+
+Does not work if 
 '''
+
+RED, GREEN, BLUE = 0, 1, 2
 
 class Location:
   def __init__(self):
@@ -46,6 +50,11 @@ class Location:
   def SetLoactionAsOccupied(self, Coordinates):
     self.Info[1, Coordinates[0], Coordinates[1]] = 1
 
+  def GetOrder(self):
+    return self.Order
+
 Loc = Location()
 
-Loc.SetLocation(1, np.array([0, 1, 2]))
+Loc.SetLocation(1, np.array([RED, GREEN, BLUE]))
+
+#print(Loc.GetOrder())
