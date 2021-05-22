@@ -19,7 +19,7 @@ G | R | G | B
 B | B | R | G
 
 self.Info[0, :, :]: Board Colors
-self.Info[1, :, :]: Location Occupied
+self.Info[1, :, :]: Location Occupied By Object
 
 Does not work if 
 '''
@@ -33,28 +33,34 @@ class Location:
 
   def SetLocation(self, RunNum, InputColor):
     self.Order = np.zeros((3, 4))
-    for i in range(3):
+    for k in range(3):
       for j in range(4):
-        if(str(np.where(self.Info[0, RunNum:RunNum + 2, j] == InputColor[i])) != '(array([], dtype=int64),)'):
-          self.Order[int(str(np.where(self.Info[0, RunNum:RunNum + 2, j] == InputColor[i]))[8:9]) + RunNum , j] = i + 1
-          break
+        for i in range(3 - RunNum):
+          if(self.Order[i + RunNum, j] == 0):
+            self.Order[i + RunNum, j] += np.where(self.Info[0, i + RunNum, j] == InputColor[k], 1, 0)
+            
+            if(self.Info[0, i + RunNum, j] == InputColor[k]):
+              break
+        else:
+          continue
+        break
+
+  def SetLocationAsOccupied(Coordinates):
+    self.Info[1, Coordinates[0], Coordinates[1]] = 1
 
   def NextLocation(self):
     return np.where(self.Order == 1)
+
+  def GetOrder(self):
+    return self.Order
 
   def SetObjectAsDelivered(self, Coordinates):
     self.Order -= 1
     self.Order = np.clip(self.Order, a_min=0)
     SetLoactionAsOccupied(Coordinates)
 
-  def SetLoactionAsOccupied(self, Coordinates):
-    self.Info[1, Coordinates[0], Coordinates[1]] = 1
-
-  def GetOrder(self):
-    return self.Order
-
 Loc = Location()
 
-Loc.SetLocation(1, np.array([RED, GREEN, BLUE]))
+Loc.SetLocation(1, np.array([RED, RED, BLUE]))
 
-#print(Loc.GetOrder())
+print(Loc.GetOrder())
