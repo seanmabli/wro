@@ -17,14 +17,19 @@ right_color = ColorSensor(Port.S3)
 robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=120)
 robot.settings(straight_speed=400, turn_rate=65)
 
-def LineFollowing(Distance):
-  BLACK = 9 
-  WHITE = 70
-  threshold = (BLACK + WHITE) / 2
+def LineFollowing(DistanceCM, Sensor):
+  # Black = 9, White = 70
+  # Circumfrence = 34.56
+  threshold = (9 + 70) / 2
 
   PROPORTIONAL_GAIN = 4
-  while True:
-    deviation = (left_color.reflection() - threshold)
+  left_motor.reset_angle(0)
+  right_motor.reset_angle(0)
+  while (left_motor.angle() + right_motor.angle()) / 2 < (Distance / 174.36) * 360:
+    if(Sensor == 'Left'):
+      deviation = (left_color.reflection() - threshold)
+    if(Sensor == 'Right'):
+      deviation = (right_color.reflection() - threshold)
     turn_rate = PROPORTIONAL_GAIN * deviation
     robot.drive(100, turn_rate)
 
@@ -35,7 +40,7 @@ def LineSquaring():
 def Metric(inches):
   return inches * 25.4 
 
-LineSquaring()
+LineFollowing(100, 'Left')
 
 '''
 robot.straight(600)

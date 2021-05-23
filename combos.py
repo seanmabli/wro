@@ -35,7 +35,7 @@ class Location:
     self.Order = np.zeros((3, 4))
     for k in range(3):
       for j in range(4):
-        for i in range(3 - RunNum):
+        for i in range(2):
           if(self.Order[i + RunNum, j] == 0):
             self.Order[i + RunNum, j] += np.where(self.Info[0, i + RunNum, j] == InputColor[k], 1, 0)
             
@@ -49,7 +49,7 @@ class Location:
     self.Info[1, Coordinates[0], Coordinates[1]] = 1
 
   def NextLocation(self):
-    return np.where(self.Order == 1)
+    print("...")
 
   def GetOrder(self):
     return self.Order
