@@ -1,7 +1,3 @@
-def MotorHold():
-  robot.stop()
-  left_motor.hold()
-  right_motor.hold()
 
 def LineFollowing(Distance, Sensor):
   # Black = 9, White = 70
@@ -21,36 +17,3 @@ def LineFollowing(Distance, Sensor):
 
   MotorHold()
 
-def LineSquaring():
-  THRESHOLD = (9 + 70) / 2
-  # Move Forward To White
-  while left_color.color() != Color.WHITE or right_color.color() != Color.WHITE:
-    robot.drive(-50, 0)
-
-  MotorHold()
-
-  # If Left Color Detected The White
-  if(left_color.color() == Color.WHITE):  
-    # Move Forward To THRESHOLD
-    while left_color.reflection() >= THRESHOLD:
-      robot.drive(-10, 0)
-    MotorHold()
-      
-  # If Right Color Detected The White
-  if(right_color.color() == Color.WHITE):  
-    # Move Forward To THRESHOLD
-    while right_color.reflection() >= THRESHOLD:
-      robot.drive(-10, 0)
-    MotorHold()
-
-  # Move Left Or Right To Get Color Reflection Equal
-  while right_color.reflection() > left_color.reflection():
-    right_motor.run(-10)
-    left_motor.run(10)
-  MotorHold()
-  while right_color.reflection() < left_color.reflection():
-    right_motor.run(10)
-    left_motor.run(-10)
-  MotorHold()
-  print(right_color.reflection())
-  print(left_color.reflection())
