@@ -20,9 +20,6 @@ def MotorHold():
   left_motor.hold()
   right_motor.hold()
 
-def ResetAngle():
-  left_motor.reset_angle(0)
-  right_motor.reset_angle(0)
 
 def LineSquaring(Num):
   THRESHOLD = (9 + 70) / 2
@@ -87,10 +84,17 @@ color.append(side_color.color())
 robot.straight(115)
 color.append(side_color.color())
 print(color)
-Ed.screen.print(0, 0, color)
 robot.straight(-550)
 LineSquaring(1)
 robot.straight(-200)
-ResetAngle()
-left_motor.run_target(400, 100)
-# right_motor.run_target(400, -100)
+robot.turn(-90)
+robot.straight(50)
+LineSquaring(1)
+robot.straight(-220)
+robot.turn(75)
+LineSquaring(-1)
+robot.turn(-20)
+robot.straight(125)
+robot.turn(-10)
+robot.straight(125)
+robot.turn(-55)
