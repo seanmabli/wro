@@ -48,12 +48,6 @@ class Location:
   def SetLocationAsOccupied(Coordinates):
     self.Info[1, Coordinates[0], Coordinates[1]] = 1
 
-  def NextLocation(self):
-    print("...")
-
-  def GetOrder(self):
-    return self.Order
-
   def SetObjectAsDelivered(self, Coordinates):
     self.Order -= 1
     self.Order = np.clip(self.Order, a_min=0)
