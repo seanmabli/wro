@@ -1,9 +1,10 @@
 #!/usr/bin/env pybricks-micropython
 
-from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port, Color
 from pybricks.robotics import DriveBase
+import time
+# import numpy as np
 
 def LastCar(CarColor):
   return 6 - np.sum(CarColor) # 1 + 1 + 2 + 2 = 6
@@ -12,7 +13,6 @@ def MotorHold():
   robot.stop()
   LeftMotor.hold()
   RightMotor.hold()
-
 
 def LineSquaring(Num):
   THRESHOLD = (9 + 70) / 2
@@ -64,18 +64,19 @@ def LineFollowing(Distance, Sensor):
 
   MotorHold()
 
-Ed = EV3Brick()
-
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
+LeftArm = Motor(Port.D)
+RightArm = Motor(Port.A)
+
 LeftColor = ColorSensor(Port.S3)
 RightColor = ColorSensor(Port.S2)
 SideColor = ColorSensor(Port.S1)
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
 robot.settings(straight_speed=200, turn_rate=65)
 
-FirstColorScan = []
-SecColorScan = []
+# FirstColorScan = numpy.zeros(6)
+# SecColorScan = numpy.zeros(6)
 
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
@@ -86,45 +87,74 @@ robot.turn(-90)
 robot.straight(150)
 LineSquaring(-1)
 robot.straight(150)
-FirstColorScan.append(SideColor.color())
+# FirstColorScan[0] = SideColor.color()
 robot.straight(115)
-FirstColorScan.append(SideColor.color())
+# FirstColorScan[1] = SideColor.color()
 robot.straight(115)
-FirstColorScan.append(SideColor.color())
+# FirstColorScan[2] = SideColor.color()
 robot.straight(115)
-FirstColorScan.append(SideColor.color())
+# FirstColorScan[3] = SideColor.color()
 robot.straight(115)
-FirstColorScan.append(SideColor.color())
+# FirstColorScan[4] = SideColor.color()
 
 robot.turn(-5)
 robot.turn(5)
 
-SecColorScan.append(SideColor.color())
+# SecColorScan[4] = SideColor.color()
 robot.straight(-115)
-SecColorScan.append(SideColor.color())
+#SecColorScan[3] = SideColor.color()
 robot.straight(-115)
-SecColorScan.append(SideColor.color())
+# SecColorScan[2] = SideColor.color()
 robot.straight(-115)
-SecColorScan.append(SideColor.color())
+# SecColorScan[1] = SideColor.color()
 robot.straight(-115)
-SecColorScan.append(SideColor.color())
+# SecColorScan[0] = SideColor.color()
 robot.straight(-115)
-SecColorScan.append(SideColor.color())
-SecColorScan = SecColorScan.reverse() 
 
-print(FirstColorScan)
-print(SecColorScan)
+# Color Scanning
+'''
+Color.RED = 0
+Color.GREEN = 1
+Color.BLUE = 2
 
+Color.BLACK = 3
+Color.YELLOW = 4
+Color.WHITE = 5
+Color.BROWN = 6
+None = 7
+
+ColorScan = np.where(FirstColorScan == Color.RED, 0)
+ColorScan = np.where(FirstColorScan == Color.GREEN, 1)
+ColorScan = np.where(FirstColorScan == Color.BLUE, 2)
+
+ColorScan = np.where(FirstColorScan == Color.BLACK, 7) # Replace With None
+ColorScan = np.where(FirstColorScan == Color.YELLOW, 7) # Replace With None
+ColorScan = np.where(FirstColorScan == Color.WHITE, 7) # Replace With None
+ColorScan = np.where(FirstColorScan == Color.BROWN, 7) # Replace With None
+ColorScan = np.where(FirstColorScan == None, 7)
+
+ColorScan = np.where(ColorScan == 7, SecColorScan)
+
+print(ColorScan)
+'''
+countdown(30)
 LineSquaring(1)
 robot.straight(-200)
 robot.turn(-90)
 robot.straight(50)
 LineSquaring(1)
+LeftArm.run_time(200, 400) # Open Arm
+RightArm.run_time(-200, 400) # Open Arm
+LeftArm.brake()
+RightArm.brake()
 robot.straight(-220)
 robot.turn(75)
 LineSquaring(-1)
 robot.turn(-20)
 robot.straight(125)
 robot.turn(-10)
-robot.straight(125)
+robot.straight(250)
+
+LeftArm.run_target(-200, 55) # Close Arm
+RightArm.run_target(200, 55) # Close Arm
 robot.turn(-55)
