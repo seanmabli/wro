@@ -4,10 +4,9 @@ from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port, Color
 from pybricks.robotics import DriveBase
 import time
-# import numpy as np
 
 def LastCar(CarColor):
-  return 6 - np.sum(CarColor) # 1 + 1 + 2 + 2 = 6
+  return 6 - sum(CarColor) # 1 + 1 + 2 + 2 = 6
 
 def MotorHold():
   robot.stop()
@@ -75,8 +74,9 @@ SideColor = ColorSensor(Port.S1)
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
 robot.settings(straight_speed=200, turn_rate=65)
 
-# FirstColorScan = numpy.zeros(6)
-# SecColorScan = numpy.zeros(6)
+FirstColorScan = [0] * 6
+SecColorScan = [0] * 6
+ColorScan = [0] * 6
 
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
@@ -87,28 +87,28 @@ robot.turn(-90)
 robot.straight(150)
 LineSquaring(-1)
 robot.straight(150)
-# FirstColorScan[0] = SideColor.color()
+FirstColorScan[0] = SideColor.color()
 robot.straight(115)
-# FirstColorScan[1] = SideColor.color()
+FirstColorScan[1] = SideColor.color()
 robot.straight(115)
-# FirstColorScan[2] = SideColor.color()
+FirstColorScan[2] = SideColor.color()
 robot.straight(115)
-# FirstColorScan[3] = SideColor.color()
+FirstColorScan[3] = SideColor.color()
 robot.straight(115)
-# FirstColorScan[4] = SideColor.color()
+FirstColorScan[4] = SideColor.color()
 
 robot.turn(-5)
 robot.turn(5)
 
-# SecColorScan[4] = SideColor.color()
+SecColorScan[4] = SideColor.color()
 robot.straight(-115)
-#SecColorScan[3] = SideColor.color()
+SecColorScan[3] = SideColor.color()
 robot.straight(-115)
-# SecColorScan[2] = SideColor.color()
+SecColorScan[2] = SideColor.color()
 robot.straight(-115)
-# SecColorScan[1] = SideColor.color()
+SecColorScan[1] = SideColor.color()
 robot.straight(-115)
-# SecColorScan[0] = SideColor.color()
+SecColorScan[0] = SideColor.color()
 robot.straight(-115)
 
 # Color Scanning
@@ -122,22 +122,41 @@ Color.YELLOW = 4
 Color.WHITE = 5
 Color.BROWN = 6
 None = 7
+'''
 
-ColorScan = np.where(FirstColorScan == Color.RED, 0)
-ColorScan = np.where(FirstColorScan == Color.GREEN, 1)
-ColorScan = np.where(FirstColorScan == Color.BLUE, 2)
+for i in range(6):
+  if (FirstColorScan[i] == Color.RED):
+    FirstColorScan[i] = 0
+  if (FirstColorScan[i] == Color.GREEN):
+    FirstColorScan[i] = 1
+  if (FirstColorScan[i] == Color.BLUE):
+    FirstColorScan[i] = 2
+  if (FirstColorScan[i] == Color.BLACK or FirstColorScan[i] == Color.YELLOW or FirstColorScan[i] == Color.WHITE or FirstColorScan[i] == Color.BROWN or FirstColorScan[i] == None):
+    FirstColorScan[i] = 7
 
-ColorScan = np.where(FirstColorScan == Color.BLACK, 7) # Replace With None
-ColorScan = np.where(FirstColorScan == Color.YELLOW, 7) # Replace With None
-ColorScan = np.where(FirstColorScan == Color.WHITE, 7) # Replace With None
-ColorScan = np.where(FirstColorScan == Color.BROWN, 7) # Replace With None
-ColorScan = np.where(FirstColorScan == None, 7)
+  if (SecColorScan[i] == Color.RED):
+    SecColorScan[i] = 0
+  if (SecColorScan[i] == Color.GREEN):
+    SecColorScan[i] = 1
+  if (SecColorScan[i] == Color.BLUE):
+    SecColorScan[i] = 2
+  if (SecColorScan[i] == Color.BLACK or SecColorScan[i] == Color.YELLOW or SecColorScan[i] == Color.WHITE or SecColorScan[i] == Color.BROWN or SecColorScan[i] == None):
+    SecColorScan[i] = 7
 
-ColorScan = np.where(ColorScan == 7, SecColorScan)
+for i in range(6):
+  if (FirstColorScan[i] != 7):
+    ColorScan[i] = FirstColorScan[i]
+  else:
+    ColorScan[i] = SecColorScan[i]
+
+file = open("color.txt", "w")
+file.write("FirstColorScan = " + repr(FirstColorScan) + "\n")
+file.write("SecColorScan = " + repr(SecColorScan) + "\n")
+file.write("ColorScan = " + repr(ColorScan) + "\n")
+file.close()
 
 print(ColorScan)
-'''
-countdown(30)
+
 LineSquaring(1)
 robot.straight(-200)
 robot.turn(-90)
