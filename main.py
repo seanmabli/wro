@@ -63,6 +63,30 @@ def LineFollowing(Distance, Sensor):
 
   MotorHold()
 
+class Location:
+  def __init__(self):
+    self.BoardColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
+    self.LocOccupied = [[0]*4 for _ in range(3)]
+    self.Order = [[0]*4 for _ in range(3)]
+
+  def SetLocation(self, RunNum, InputColor):
+    for k in range(3):
+      for j in range(4):
+        for i in range(2):
+          if(self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == InputColor[k]):
+            self.Order[i + RunNum][j] = 1
+            break
+        else:
+          continue
+        break
+
+  def SetLocationAsOccupied(self, Coordinates):
+    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
+
+  def SetLocationAsDelivered(self, Coordinates):
+    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
+    self.Order[Coordinates[0]][Coordinates[1]] = 0
+
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
 LeftArm = Motor(Port.D)
@@ -124,7 +148,7 @@ Color.BROWN = 6
 None = 7
 '''
 
-for i in range(6):
+for i in range(5):
   if (FirstColorScan[i] == Color.RED):
     FirstColorScan[i] = 0
   if (FirstColorScan[i] == Color.GREEN):
@@ -143,11 +167,13 @@ for i in range(6):
   if (SecColorScan[i] == Color.BLACK or SecColorScan[i] == Color.YELLOW or SecColorScan[i] == Color.WHITE or SecColorScan[i] == Color.BROWN or SecColorScan[i] == None):
     SecColorScan[i] = 7
 
-for i in range(6):
+for i in range(5):
   if (FirstColorScan[i] != 7):
     ColorScan[i] = FirstColorScan[i]
   else:
     ColorScan[i] = SecColorScan[i]
+
+ColorScan[5] = LastCar(ColorScan)
 
 file = open("color.txt", "w")
 file.write("FirstColorScan = " + repr(FirstColorScan) + "\n")
@@ -164,16 +190,15 @@ robot.straight(50)
 LineSquaring(1)
 LeftArm.run_time(200, 400) # Open Arm
 RightArm.run_time(-200, 400) # Open Arm
-LeftArm.brake()
-RightArm.brake()
+
 robot.straight(-220)
 robot.turn(75)
 LineSquaring(-1)
 robot.turn(-20)
 robot.straight(125)
 robot.turn(-10)
-robot.straight(250)
+robot.straight(400)
 
-LeftArm.run_target(-200, 55) # Close Arm
-RightArm.run_target(200, 55) # Close Arm
-robot.turn(-55)
+LeftArm.run_target(-200, 0) # Close Arm
+RightArm.run_target(200, 0) # Close Arm
+
