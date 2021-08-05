@@ -1,9 +1,24 @@
 #!/usr/bin/env pybricks-micropython
 
+# Color Scanning
+'''
+Color.RED = 0
+Color.GREEN = 1
+Color.BLUE = 2
+
+Color.BLACK = 3
+Color.YELLOW = 4
+Color.WHITE = 5
+Color.BROWN = 6
+None = 7
+'''
+
 from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port, Color
 from pybricks.robotics import DriveBase
 import time
+
+StartTime = time.time()
 
 def LastCar(CarColor):
   return 6 - sum(CarColor) # 1 + 1 + 2 + 2 = 6
@@ -45,47 +60,35 @@ def LineSquaring(Num):
     LeftMotor.run(-10 * Num)
   MotorHold()
 
-def LineFollowing(Distance, Sensor):
-  # Black = 9, White = 70
-  # Circumfrence = 34.56
-  threshold = (9 + 70) / 2
+def LineFollowingDistance(Distance, Sensor, ProportionalGain):
+  # Circumfrence = 174.36 mm
+  # Distance in cm x 10 -> mm
+  Distance = Distance * 10
 
-  PROPORTIONAL_GAIN = 4
+  Threshold = (9 + 70) / 2 # Black = 9, White = 70
   LeftMotor.reset_angle(0)
   RightMotor.reset_angle(0)
-  while (LeftMotor.angle() + RightMotor.angle()) / 2 < (Distance / 174.36) * 360:
+  while abs((LeftMotor.angle() + RightMotor.angle()) / 2) < (Distance / 174.36) * 360:
     if(Sensor == 'Left'):
-      deviation = (LeftColor.reflection() - threshold)
+      Deviation = (LeftColor.reflection() - Threshold)
     if(Sensor == 'Right'):
-      deviation = (RightColor.reflection() - threshold)
-    turn_rate = PROPORTIONAL_GAIN * deviation
+      Deviation = (RightColor.reflection() - Threshold)
+    turn_rate = ProportionalGain * Deviation
     robot.drive(-100, turn_rate)
 
   MotorHold()
 
-class Location:
-  def __init__(self):
-    self.BoardColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
-    self.LocOccupied = [[0]*4 for _ in range(3)]
-    self.Order = [[0]*4 for _ in range(3)]
+def LineFollowingToBlack(Sensor, ProportionalGain):
+  Threshold = (9 + 70) / 2 # Black = 9, White = 70
+  while (LeftColor.reflection() + RightColor.reflection()) / 2 > 15:
+    if(Sensor == 'Left'):
+      Deviation = (LeftColor.reflection() - Threshold)
+    if(Sensor == 'Right'):
+      Deviation = (RightColor.reflection() - Threshold)
+    turn_rate = ProportionalGain * Deviation
+    robot.drive(-100, turn_rate)
 
-  def SetLocation(self, RunNum, InputColor):
-    for k in range(3):
-      for j in range(4):
-        for i in range(2):
-          if(self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == InputColor[k]):
-            self.Order[i + RunNum][j] = 1
-            break
-        else:
-          continue
-        break
-
-  def SetLocationAsOccupied(self, Coordinates):
-    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
-
-  def SetLocationAsDelivered(self, Coordinates):
-    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
-    self.Order[Coordinates[0]][Coordinates[1]] = 0
+  MotorHold()
 
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
@@ -110,43 +113,15 @@ robot.straight(-240)
 robot.turn(-90)
 robot.straight(150)
 LineSquaring(-1)
-robot.straight(150)
-FirstColorScan[0] = SideColor.color()
-robot.straight(115)
-FirstColorScan[1] = SideColor.color()
-robot.straight(115)
-FirstColorScan[2] = SideColor.color()
-robot.straight(115)
-FirstColorScan[3] = SideColor.color()
-robot.straight(115)
-FirstColorScan[4] = SideColor.color()
+robot.straight(35)
 
-robot.turn(-5)
-robot.turn(5)
+for i in range(5):
+  robot.straight(115)
+  FirstColorScan[i] = SideColor.color()
 
-SecColorScan[4] = SideColor.color()
-robot.straight(-115)
-SecColorScan[3] = SideColor.color()
-robot.straight(-115)
-SecColorScan[2] = SideColor.color()
-robot.straight(-115)
-SecColorScan[1] = SideColor.color()
-robot.straight(-115)
-SecColorScan[0] = SideColor.color()
-robot.straight(-115)
-
-# Color Scanning
-'''
-Color.RED = 0
-Color.GREEN = 1
-Color.BLUE = 2
-
-Color.BLACK = 3
-Color.YELLOW = 4
-Color.WHITE = 5
-Color.BROWN = 6
-None = 7
-'''
+for i in reversed(range(5)):
+  SecColorScan[i] = SideColor.color()
+  robot.straight(-115)
 
 for i in range(5):
   if (FirstColorScan[i] == Color.RED):
@@ -176,15 +151,13 @@ for i in range(5):
 ColorScan[5] = LastCar(ColorScan)
 
 file = open("color.txt", "w")
-file.write("FirstColorScan = " + repr(FirstColorScan) + "\n")
-file.write("SecColorScan = " + repr(SecColorScan) + "\n")
-file.write("ColorScan = " + repr(ColorScan) + "\n")
+file.write("FirstColorScan = " + repr(FirstColorScan) + "\n" + "SecColorScan = " + repr(SecColorScan) + "\n" + "ColorScan = " + repr(ColorScan) + "\n")
 file.close()
 
 print(ColorScan)
 
-LineSquaring(1)
-robot.straight(-200)
+# LineSquaring(1)
+robot.straight(-250)
 robot.turn(-90)
 robot.straight(50)
 LineSquaring(1)
@@ -202,3 +175,16 @@ robot.straight(400)
 LeftArm.run_target(-200, 0) # Close Arm
 RightArm.run_target(200, 0) # Close Arm
 
+robot.turn(50)
+
+while RightColor.color() != Color.WHITE:
+  robot.drive(-50, 0)
+  
+MotorHold()
+
+LineFollowingToBlack('Right', 1)
+robot.turn(30)
+
+LineFollowingToBlack('Left', 1)
+
+print('Time: ' + str(time.time() - StartTime))
