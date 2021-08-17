@@ -90,6 +90,30 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
 
   MotorHold()
 
+class Location:
+  def __init__(self):
+    self.BoardColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
+    self.LocOccupied = [[0]*4 for _ in range(3)]
+    self.Order = [[0]*4 for _ in range(3)]
+
+  def SetLocation(self, RunNum, InputColor):
+    for k in range(3):
+      for j in range(4):
+        for i in range(2):
+          if(self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == InputColor[k]):
+            self.Order[i + RunNum][j] = 1
+            break
+        else:
+          continue
+        break
+
+  def SetLocationAsOccupied(self, Coordinates):
+    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
+
+  def SetLocationAsDelivered(self, Coordinates):
+    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
+    self.Order[Coordinates[0]][Coordinates[1]] = 0
+
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
 LeftArm = Motor(Port.D)
@@ -180,10 +204,10 @@ robot.turn(50)
 while RightColor.color() != Color.WHITE:
   robot.drive(-50, 0)
   
-MotorHold()
+MotorHold()  
 
 LineFollowingToBlack('Right', 1)
-robot.turn(30)
+robot.turn(70)
 
 LineFollowingToBlack('Left', 1)
 
