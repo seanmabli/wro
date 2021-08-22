@@ -13,7 +13,7 @@ Color.BROWN = 6
 None = 7
 '''
 
-from pybricks.ev3devices import Motor, ColorSensor
+from pybricks.ev3devices import Motor, ColorSensor, UltrasonicSensor
 from pybricks.parameters import Port, Color
 from pybricks.robotics import DriveBase
 import time
@@ -82,7 +82,7 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
   Threshold = (9 + 70) / 2 # Black = 9, White = 70
   while (LeftColor.reflection() + RightColor.reflection()) / 2 > 15:
     if(Sensor == 'Left'):
-      Deviation = (LeftColor.reflection() - Threshold)
+      Deviation = - (LeftColor.reflection() - Threshold)
     if(Sensor == 'Right'):
       Deviation = (RightColor.reflection() - Threshold)
     turn_rate = ProportionalGain * Deviation
@@ -114,6 +114,18 @@ class Location:
     self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
     self.Order[Coordinates[0]][Coordinates[1]] = 0
 
+'''
+def BayOperation(Bay, Operation): # Close if Operation = -1 and Open if Operation = 1
+  if Bay == 0: # All
+
+  elif Bay == 1: # Bay 1
+  elif Bay == 2: # Bay 2
+  elif Bay == 3: # Bay 3
+    
+  elif Bay == 4: # Left Arm (Covers 1.5 Bays)
+  elif Bay == 3: # Right Arm (Covers 1.5 Bays)
+'''
+
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
 LeftArm = Motor(Port.D)
@@ -122,6 +134,7 @@ RightArm = Motor(Port.A)
 LeftColor = ColorSensor(Port.S3)
 RightColor = ColorSensor(Port.S2)
 SideColor = ColorSensor(Port.S1)
+UltraSonic = UltrasonicSensor(Port.S4)
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
 robot.settings(straight_speed=200, turn_rate=65)
 
@@ -132,11 +145,12 @@ ColorScan = [0] * 6
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
 while LeftColor.color() != Color.WHITE or RightColor.color() != Color.WHITE:
-  robot.drive(-50, 0)
-robot.straight(-240)
-robot.turn(-90)
+  robot.drive(-200, 0)
+robot.straight(-255)
+robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
+robot.turn(3) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 for i in range(5):
@@ -180,7 +194,6 @@ file.close()
 
 print(ColorScan)
 
-# LineSquaring(1)
 robot.straight(-250)
 robot.turn(-90)
 robot.straight(50)
@@ -188,27 +201,45 @@ LineSquaring(1)
 LeftArm.run_time(200, 400) # Open Arm
 RightArm.run_time(-200, 400) # Open Arm
 
-robot.straight(-220)
-robot.turn(75)
+robot.straight(-215)
+robot.turn(80)
 LineSquaring(-1)
 robot.turn(-20)
 robot.straight(125)
 robot.turn(-10)
-robot.straight(400)
+robot.straight(200)
 
-LeftArm.run_target(-200, 0) # Close Arm
+LeftArm.run_target(-200, 0) # Close Left Arm (Can't Close Right Arm Until Turn)
+robot.turn(-55)
 RightArm.run_target(200, 0) # Close Arm
 
-robot.turn(50)
+robot.straight(200)
+robot.turn(90)
+
+robot.drive(-200, 25)
+time.sleep(1.5)
+
+while LeftColor.color() != Color.WHITE:
+  robot.drive(-200, 25)
+
+MotorHold()
+
+LineFollowingToBlack('Left', 2)
+
+'''
+LineFollowingToBlack('Right', 1)
+robot.straight(-150)
+robot.turn(90)
+
+LineFollowingToBlack('Right', 1)
+robot.straight(-100)
+
+
+if UltraSonic.distance() > 100:
+  robot.turn(-90)
 
 while RightColor.color() != Color.WHITE:
   robot.drive(-50, 0)
-  
-MotorHold()  
-
-LineFollowingToBlack('Right', 1)
-robot.turn(70)
-
-LineFollowingToBlack('Left', 1)
+'''
 
 print('Time: ' + str(time.time() - StartTime))
