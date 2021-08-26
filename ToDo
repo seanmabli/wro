@@ -1,3 +1,3 @@
-- Open and close arms in parrellel
-- Cut throught in the intersection after the cars have been droped off
-- Reduce time to first dropoff plus by 25%, Current time 64.6, Target time: 48.8
+- Finish Bay Operations (Close)
+- Work On Dropoff (How many spaces to go)
+- Reorganize Code
