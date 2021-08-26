@@ -1,7 +1,8 @@
 #!/usr/bin/env pybricks-micropython
 
-# Color Scanning
 '''
+Color Scanning:
+
 Color.RED = 0
 Color.GREEN = 1
 Color.BLUE = 2
@@ -19,9 +20,6 @@ from pybricks.robotics import DriveBase
 import time
 
 StartTime = time.time()
-
-def LastCar(CarColor):
-  return 6 - sum(CarColor) # 1 + 1 + 2 + 2 = 6
 
 def MotorHold():
   robot.stop()
@@ -90,41 +88,53 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
 
   MotorHold()
 
-class Location:
+class Navigation:
   def __init__(self):
     self.BoardColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
-    self.LocOccupied = [[0]*4 for _ in range(3)]
-    self.Order = [[0]*4 for _ in range(3)]
+    self.LocOccupied = [[0] * 4 for _ in range(3)]
+    self.Order = [[0] * 4 for _ in range(3)]
 
-  def SetLocation(self, RunNum, InputColor):
+  def LastCar(self, CarColor):
+    return 6 - sum(CarColor) # 0 + 0 + 1 + 1 + 2 + 2 = 6
+
+  def SetLocation(self, RunNum, CarColor):
+    self.CarColor, self.RunNum = CarColor, RunNum
+    self.Order = [[0] * 4 for _ in range(3)]
+
     for k in range(3):
       for j in range(4):
         for i in range(2):
-          if(self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == InputColor[k]):
+          if self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == CarColor[k] and self.LocOccupied[i + RunNum][j] == 0:
             self.Order[i + RunNum][j] = 1
             break
         else:
           continue
         break
 
-  def SetLocationAsOccupied(self, Coordinates):
+  def SetLocationAsPreOccupied(self, Coordinates):
     self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
+    self.SetLocation(self.RunNum, self.CarColor)
 
   def SetLocationAsDelivered(self, Coordinates):
     self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
     self.Order[Coordinates[0]][Coordinates[1]] = 0
 
-'''
-def BayOperation(Bay, Operation): # Close if Operation = -1 and Open if Operation = 1
+
+def ArmControl(Bay, Operation): # Close if Operation = -1 and Open if Operation = 1
   if Bay == 0: # All
+    LeftArm.run_time(200, 400)
+    RightArm.run_time(200, -400)
 
   elif Bay == 1: # Bay 1
+    LeftArm.run_time(200, 400)
+    RightArm.run_target(200, 10)
+
   elif Bay == 2: # Bay 2
+    LeftArm.run_target(200, 35)
+    RightArm.run_target(200, -30)
+
   elif Bay == 3: # Bay 3
-    
-  elif Bay == 4: # Left Arm (Covers 1.5 Bays)
-  elif Bay == 3: # Right Arm (Covers 1.5 Bays)
-'''
+    RightArm.run_time(200, -400)
 
 LeftMotor = Motor(Port.C)
 RightMotor = Motor(Port.B)
@@ -138,6 +148,8 @@ UltraSonic = UltrasonicSensor(Port.S4)
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
 robot.settings(straight_speed=200, turn_rate=65)
 
+LOC = Location()
+
 FirstColorScan = [0] * 6
 SecColorScan = [0] * 6
 ColorScan = [0] * 6
@@ -146,11 +158,11 @@ RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
 while LeftColor.color() != Color.WHITE or RightColor.color() != Color.WHITE:
   robot.drive(-200, 0)
-robot.straight(-255)
+robot.straight(-265)
 robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
-robot.turn(3) # Squaring always is angleded to the left so this should counter that
+robot.turn(0) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 for i in range(5):
@@ -192,12 +204,15 @@ file = open("color.txt", "w")
 file.write("FirstColorScan = " + repr(FirstColorScan) + "\n" + "SecColorScan = " + repr(SecColorScan) + "\n" + "ColorScan = " + repr(ColorScan) + "\n")
 file.close()
 
+LOC.SetLocation(1, ColorScan)
+
 print(ColorScan)
 
 robot.straight(-250)
 robot.turn(-90)
 robot.straight(50)
 LineSquaring(1)
+
 LeftArm.run_time(200, 400) # Open Arm
 RightArm.run_time(-200, 400) # Open Arm
 
@@ -216,30 +231,26 @@ RightArm.run_target(200, 0) # Close Arm
 robot.straight(200)
 robot.turn(90)
 
-robot.drive(-200, 25)
+robot.drive(-200, 20)
 time.sleep(1.5)
 
 while LeftColor.color() != Color.WHITE:
-  robot.drive(-200, 25)
+  robot.drive(-200, 20)
 
 MotorHold()
 
-LineFollowingToBlack('Left', 2)
-
-'''
-LineFollowingToBlack('Right', 1)
-robot.straight(-150)
-robot.turn(90)
-
-LineFollowingToBlack('Right', 1)
-robot.straight(-100)
-
-
-if UltraSonic.distance() > 100:
-  robot.turn(-90)
-
-while RightColor.color() != Color.WHITE:
-  robot.drive(-50, 0)
-'''
+LineFollowingToDistance(5, 'Left', 2)
+LineFollowingToBlack('Left', 1)
 
 print('Time: ' + str(time.time() - StartTime))
+
+'''
+# Delivery
+LOC.SetLocation(1, [0, 2, 1, 2, 0, 1])
+print(LOC.Order)
+
+if UltraSonic.distance() < 100:
+  LOC.SetLocationAsPreOccupied([1, 0])
+
+print(LOC.Order)
+'''
