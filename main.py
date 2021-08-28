@@ -1,19 +1,5 @@
 #!/usr/bin/env pybricks-micropython
 
-'''
-Color Scanning:
-
-Color.RED = 0
-Color.GREEN = 1
-Color.BLUE = 2
-
-Color.BLACK = 3
-Color.YELLOW = 4
-Color.WHITE = 5
-Color.BROWN = 6
-None = 7
-'''
-
 from pybricks.ev3devices import Motor, ColorSensor, UltrasonicSensor
 from pybricks.parameters import Port, Color
 from pybricks.robotics import DriveBase
@@ -21,6 +7,30 @@ import time
 
 StartTime = time.time()
 
+# Define Variables
+LocationColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
+LocationOccupied = [[0] * 4 for _ in range(3)]
+DropoffLocation = [[0] * 4 for _ in range(3)]
+
+FirstColorScan = [0] * 6
+SecColorScan = [0] * 6
+ColorScan = [0] * 6
+
+# Define Motor & Sensor
+LeftMotor = Motor(Port.C)
+RightMotor = Motor(Port.B)
+LeftArm = Motor(Port.D)
+RightArm = Motor(Port.A)
+
+LeftColor = ColorSensor(Port.S3)
+RightColor = ColorSensor(Port.S2)
+SideColor = ColorSensor(Port.S1)
+Ultrasonic = UltrasonicSensor(Port.S4)
+
+robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
+robot.settings(straight_speed=200, turn_rate=65)
+
+# Define Functions
 def MotorHold():
   robot.stop()
   LeftMotor.hold()
@@ -88,42 +98,24 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
 
   MotorHold()
 
-class Navigation:
-  def __init__(self):
-    self.BoardColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
-    self.LocOccupied = [[0] * 4 for _ in range(3)]
-    self.Order = [[0] * 4 for _ in range(3)]
+def LastCar(CarColor):
+  return 6 - sum(CarColor) # 0 + 0 + 1 + 1 + 2 + 2 = 6
 
-  def LastCar(self, CarColor):
-    return 6 - sum(CarColor) # 0 + 0 + 1 + 1 + 2 + 2 = 6
+def SetLocation(RunNum, CarColor):
+  for k in range(3):
+    for j in range(4):
+      for i in range(2):
+        if Order[i + RunNum][j] == 0 and BoardColor[i + RunNum][j] == CarColor[k] and LocationOccupied[i + RunNum][j] == 0:
+          Order[i + RunNum][j] = 1
+          break
+      else:
+        continue
+      break
 
-  def SetLocation(self, RunNum, CarColor):
-    self.CarColor, self.RunNum = CarColor, RunNum
-    self.Order = [[0] * 4 for _ in range(3)]
-
-    for k in range(3):
-      for j in range(4):
-        for i in range(2):
-          if self.Order[i + RunNum][j] == 0 and self.BoardColor[i + RunNum][j] == CarColor[k] and self.LocOccupied[i + RunNum][j] == 0:
-            self.Order[i + RunNum][j] = 1
-            break
-        else:
-          continue
-        break
-
-  def SetLocationAsPreOccupied(self, Coordinates):
-    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
-    self.SetLocation(self.RunNum, self.CarColor)
-
-  def SetLocationAsDelivered(self, Coordinates):
-    self.LocOccupied[Coordinates[0]][Coordinates[1]] = 1
-    self.Order[Coordinates[0]][Coordinates[1]] = 0
-
-
-def ArmControl(Bay, Operation): # Close if Operation = -1 and Open if Operation = 1
+def ArmControl(Bay):
   if Bay == 0: # All
     LeftArm.run_time(200, 400)
-    RightArm.run_time(200, -400)
+    RightArm.run_time(-200, 400)
 
   elif Bay == 1: # Bay 1
     LeftArm.run_time(200, 400)
@@ -136,28 +128,25 @@ def ArmControl(Bay, Operation): # Close if Operation = -1 and Open if Operation 
   elif Bay == 3: # Bay 3
     RightArm.run_time(200, -400)
 
-LeftMotor = Motor(Port.C)
-RightMotor = Motor(Port.B)
-LeftArm = Motor(Port.D)
-RightArm = Motor(Port.A)
+  elif Bay == 4: # Close
+    LeftArm.run_target(200, 0)
+    RightArm.run_target(200, 0)
 
-LeftColor = ColorSensor(Port.S3)
-RightColor = ColorSensor(Port.S2)
-SideColor = ColorSensor(Port.S1)
-UltraSonic = UltrasonicSensor(Port.S4)
-robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=55.5, axle_track=139)
-robot.settings(straight_speed=200, turn_rate=65)
+  elif Bay == 5: # Left Arm
+    LeftArm.run_time(200, 400)
 
-LOC = Location()
+  elif Bay == 6: # Right Arm
+    RightArm.run_time(-200, 400)
 
-FirstColorScan = [0] * 6
-SecColorScan = [0] * 6
-ColorScan = [0] * 6
-
+# S-Turn
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
+
+# Drive To First Line
 while LeftColor.color() != Color.WHITE or RightColor.color() != Color.WHITE:
   robot.drive(-200, 0)
+
+# Aline To Scan Car Color
 robot.straight(-265)
 robot.turn(-80)
 robot.straight(150)
@@ -165,13 +154,16 @@ LineSquaring(-1)
 robot.turn(0) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
+# First Scan
 for i in range(5):
   robot.straight(115)
   FirstColorScan[i] = SideColor.color()
 
+# Second Scan
 for i in reversed(range(5)):
   SecColorScan[i] = SideColor.color()
   robot.straight(-115)
+
 
 for i in range(5):
   if (FirstColorScan[i] == Color.RED):
@@ -192,7 +184,6 @@ for i in range(5):
   if (SecColorScan[i] == Color.BLACK or SecColorScan[i] == Color.YELLOW or SecColorScan[i] == Color.WHITE or SecColorScan[i] == Color.BROWN or SecColorScan[i] == None):
     SecColorScan[i] = 7
 
-for i in range(5):
   if (FirstColorScan[i] != 7):
     ColorScan[i] = FirstColorScan[i]
   else:
@@ -200,12 +191,12 @@ for i in range(5):
 
 ColorScan[5] = LastCar(ColorScan)
 
+# Save To Text File Because Of Posible Disconnect
 file = open("color.txt", "w")
 file.write("FirstColorScan = " + repr(FirstColorScan) + "\n" + "SecColorScan = " + repr(SecColorScan) + "\n" + "ColorScan = " + repr(ColorScan) + "\n")
 file.close()
 
-LOC.SetLocation(1, ColorScan)
-
+# If Connected Print
 print(ColorScan)
 
 robot.straight(-250)
@@ -243,14 +234,18 @@ LineFollowingToDistance(5, 'Left', 2)
 LineFollowingToBlack('Left', 1)
 
 print('Time: ' + str(time.time() - StartTime))
-
 '''
 # Delivery
 LOC.SetLocation(1, [0, 2, 1, 2, 0, 1])
 print(LOC.Order)
 
 if UltraSonic.distance() < 100:
-  LOC.SetLocationAsPreOccupied([1, 0])
+  LocationOccupied[Coordinates[0]][Coordinates[1]] = 1
+  SetLocation(RunNum, CarColor)
 
 print(LOC.Order)
+
+# Set Location As Delivired:
+# LocationOccupied[Coordinates[0]][Coordinates[1]] = 1
+# Order[Coordinates[0]][Coordinates[1]] = 0
 '''

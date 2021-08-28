@@ -1,0 +1,10 @@
+Color Scanning:
+  Color.RED = 0
+  Color.GREEN = 1
+  Color.BLUE = 2
+  
+  Color.BLACK = 3
+  Color.YELLOW = 4
+  Color.WHITE = 5
+  Color.BROWN = 6
+  None = 7
