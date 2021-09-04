@@ -68,24 +68,6 @@ def LineSquaring(Num):
     LeftMotor.run(-10 * Num)
   MotorHold()
 
-def LineFollowingDistance(Distance, Sensor, ProportionalGain):
-  # Circumfrence = 174.36 mm
-  # Distance in cm x 10 -> mm
-  Distance = Distance * 10
-
-  Threshold = (9 + 70) / 2 # Black = 9, White = 70
-  LeftMotor.reset_angle(0)
-  RightMotor.reset_angle(0)
-  while abs((LeftMotor.angle() + RightMotor.angle()) / 2) < (Distance / 174.36) * 360:
-    if(Sensor == 'Left'):
-      Deviation = (LeftColor.reflection() - Threshold)
-    if(Sensor == 'Right'):
-      Deviation = (RightColor.reflection() - Threshold)
-    turn_rate = ProportionalGain * Deviation
-    robot.drive(-100, turn_rate)
-
-  MotorHold()
-
 def LineFollowingToBlack(Sensor, ProportionalGain):
   Threshold = (9 + 70) / 2 # Black = 9, White = 70
   while (LeftColor.reflection() + RightColor.reflection()) / 2 > 15:
@@ -105,8 +87,8 @@ def SetLocation(RunNum, CarColor):
   for k in range(3):
     for j in range(4):
       for i in range(2):
-        if Order[i + RunNum][j] == 0 and BoardColor[i + RunNum][j] == CarColor[k] and LocationOccupied[i + RunNum][j] == 0:
-          Order[i + RunNum][j] = 1
+        if DropoffLocation[i + RunNum][j] == 0 and LocationColor[i + RunNum][j] == CarColor[k] and LocationOccupied[i + RunNum][j] == 0:
+          DropoffLocation[i + RunNum][j] = 1
           break
       else:
         continue
@@ -151,7 +133,7 @@ robot.straight(-265)
 robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
-robot.turn(0) # Squaring always is angleded to the left so this should counter that
+robot.turn(4) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 # First Scan
@@ -163,7 +145,6 @@ for i in range(5):
 for i in reversed(range(5)):
   SecColorScan[i] = SideColor.color()
   robot.straight(-115)
-
 
 for i in range(5):
   if (FirstColorScan[i] == Color.RED):
@@ -207,7 +188,7 @@ LineSquaring(1)
 LeftArm.run_time(200, 400) # Open Arm
 RightArm.run_time(-200, 400) # Open Arm
 
-robot.straight(-215)
+robot.straight(-208)
 robot.turn(80)
 LineSquaring(-1)
 robot.turn(-20)
@@ -222,30 +203,53 @@ RightArm.run_target(200, 0) # Close Arm
 robot.straight(200)
 robot.turn(90)
 
-robot.drive(-200, 20)
+robot.drive(-200, 25)
 time.sleep(1.5)
-
 while LeftColor.color() != Color.WHITE:
-  robot.drive(-200, 20)
+  robot.drive(-200, 25)
 
-MotorHold()
+LineFollowingToBlack('Left', 2)
 
-LineFollowingToDistance(5, 'Left', 2)
-LineFollowingToBlack('Left', 1)
+SetLocation(1, ColorScan)
+
+# Middle Row
+for i in range (4):
+  if DropoffLocation[1][i] == 1:
+    if Ultrasonic.distance() > 100:
+      print('Dropoff')
+      LocationOccupied[1][i] = 1
+      DropoffLocation[1][i] = 0
+    else:
+      LocationOccupied[1][i] = 1
+      SetLocation(RunNum, CarColor)
+
+  if DropoffLocation[1][:] == [0, 0, 0, 0]:
+    break
+  else:
+    robot.straight(-50)
+    LineFollowingToBlack('Left', 1)
+  
+robot.straight(-300)
+robot.turn(160)
+LineFollowingToBlack('Left', 2)
+
+# Bottem Row
+print(i)
+for j in reversed(range(i)):
+  '''
+  if DropoffLocation[2][j] == 1:
+    if Ultrasonic.distance() > 100:
+      print('Dropoff')
+      LocationOccupied[2][j] = 1
+      DropoffLocation[2][j] = 0
+    else:
+      LocationOccupied[2][j] = 1
+      SetLocation(RunNum, CarColor)
+  '''
+  if DropoffLocation[2][:] == [0, 0, 0, 0]:
+    break
+  else:
+    robot.straight(-50)
+    LineFollowingToBlack('Left', 1)
 
 print('Time: ' + str(time.time() - StartTime))
-'''
-# Delivery
-LOC.SetLocation(1, [0, 2, 1, 2, 0, 1])
-print(LOC.Order)
-
-if UltraSonic.distance() < 100:
-  LocationOccupied[Coordinates[0]][Coordinates[1]] = 1
-  SetLocation(RunNum, CarColor)
-
-print(LOC.Order)
-
-# Set Location As Delivired:
-# LocationOccupied[Coordinates[0]][Coordinates[1]] = 1
-# Order[Coordinates[0]][Coordinates[1]] = 0
-'''
