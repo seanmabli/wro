@@ -120,6 +120,10 @@ def ArmControl(Bay):
   elif Bay == 6: # Right Arm
     RightArm.run_time(-200, 400)
 
+def Dropoff():
+  robot.turn(90)
+  robot.turn(-90)
+
 # S-Turn
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
@@ -188,7 +192,7 @@ LineSquaring(1)
 LeftArm.run_time(200, 400) # Open Arm
 RightArm.run_time(-200, 400) # Open Arm
 
-robot.straight(-208)
+robot.straight(-207)
 robot.turn(80)
 LineSquaring(-1)
 robot.turn(-20)
@@ -216,7 +220,7 @@ SetLocation(1, ColorScan)
 for i in range (4):
   if DropoffLocation[1][i] == 1:
     if Ultrasonic.distance() > 100:
-      print('Dropoff')
+      Dropoff()
       LocationOccupied[1][i] = 1
       DropoffLocation[1][i] = 0
     else:
@@ -234,22 +238,16 @@ robot.turn(160)
 LineFollowingToBlack('Left', 2)
 
 # Bottem Row
-print(i)
 for j in reversed(range(i)):
-  '''
   if DropoffLocation[2][j] == 1:
     if Ultrasonic.distance() > 100:
-      print('Dropoff')
+      Dropoff()
       LocationOccupied[2][j] = 1
       DropoffLocation[2][j] = 0
     else:
       LocationOccupied[2][j] = 1
       SetLocation(RunNum, CarColor)
-  '''
-  if DropoffLocation[2][:] == [0, 0, 0, 0]:
-    break
-  else:
-    robot.straight(-50)
-    LineFollowingToBlack('Left', 1)
+  robot.straight(-50)
+  LineFollowingToBlack('Left', 1)
 
 print('Time: ' + str(time.time() - StartTime))
