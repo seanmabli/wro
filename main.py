@@ -122,7 +122,9 @@ def ArmControl(Bay):
 
 def Dropoff(Color):
   robot.straight(-80)
-  if Color == ColorScan[1]:
+  if Color == ColorScan[0]:
+    {}
+  elif Color == ColorScan[1]:
     robot.straight(-20)
   elif Color == ColorScan[2]:
     robot.straight(-40)
@@ -132,10 +134,13 @@ def Dropoff(Color):
 
   if Color == ColorScan[0]:
     ArmControl(1)
+    ColorScan[0] = 7
   elif Color == ColorScan[1]:
     ArmControl(2)
+    ColorScan[1] = 7
   elif Color == ColorScan[2]:
     ArmControl(3)
+    ColorScan[2] = 7
 
   robot.straight(-180)
   ArmControl(4)
@@ -154,7 +159,7 @@ robot.straight(-260)
 robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
-robot.turn(2) # Squaring always is angleded to the left so this should counter that
+robot.turn(0) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 # First Scan
@@ -240,41 +245,44 @@ for i in range (4):
   if DropoffLocation[1][i] == 1:
     if Ultrasonic.distance() > 100:
       Dropoff(LocationColor[1][i])
-      LocationOccupied[1][i] = 1
       DropoffLocation[1][i] = 0
     else:
-      LocationOccupied[1][i] = 1
-      SetLocation(RunNum, CarColor)
-
-  if DropoffLocation[1][:] == [0, 0, 0, 0]:
+      SetLocation(RunNum, CarColor) # Update Route To Avoid Obstacle
+    LocationOccupied[1][i] = 1
+    
+  if sum(DropoffLocation[1][:]) == 0 and sum(DropoffLocation[2][i+1 :]) == 0:
     break
-  else:
-    LineFollowingToBlack('Left', 1)
+
+  robot.straight(-50)
+  LineFollowingToBlack('Left', 1)
   
-robot.straight(-200)
+robot.straight(-250)
 robot.turn(160)
 LineFollowingToBlack('Left', 2)
 
 # Bottem Row
-for j in reversed(range(i)):
+for j in reversed(range(i + 1)):
   if DropoffLocation[2][j] == 1:
     if Ultrasonic.distance() > 100:
-      Dropoff(LocationColor[2][i])
-      LocationOccupied[2][j] = 1
+      Dropoff(LocationColor[2][j])
       DropoffLocation[2][j] = 0
     else:
-      LocationOccupied[2][j] = 1
       SetLocation(RunNum, CarColor)
-  LineFollowingToBlack('Left', 1)
+    LocationOccupied[2][j] = 1
+
+  if j != 0:
+    robot.straight(-50)
+    LineFollowingToBlack('Left', 1)
 
 robot.straight(-50)
 Threshold = (9 + 70) / 2 # Black = 9, White = 70
 while LeftColor.reflection() > 15:
   Deviation = - (LeftColor.reflection() - Threshold)
   robot.drive(-200, Deviation)
-MotorHold()
 
-robot.straight(-180)
+MotorHold()
+robot.straight(-170)
+
 robot.turn(90)
 LineSquaring(-1)
 robot.turn(4) # Squaring always is angleded to the left so this should counter that
@@ -282,10 +290,10 @@ robot.turn(4) # Squaring always is angleded to the left so this should counter t
 ArmControl(0)
 
 robot.straight(340)
-
 robot.turn(-20)
 robot.straight(125)
 robot.turn(-10)
-robot.straight(200)
+robot.straight(150)
+robot.turn(30)
 
 print('Time: ' + str(time.time() - StartTime))
