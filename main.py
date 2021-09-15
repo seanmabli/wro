@@ -83,16 +83,21 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
 def LastCar(CarColor):
   return 6 - sum(CarColor) # 0 + 0 + 1 + 1 + 2 + 2 = 6
 
-def SetLocation(RunNum, CarColor):
-  for k in range(3):
+def SetRoute(RunNum, CarColor):
+  for x in range(3):
+    for y in range(4):
+      DropoffLocation[x][y] = 0
+  CarInBay = 0 if RunNum == 1 else 3
+  for k in range(CarInBay, CarInBay + 3):
     for j in range(4):
-      for i in range(2):
-        if DropoffLocation[i + RunNum][j] == 0 and LocationColor[i + RunNum][j] == CarColor[k] and LocationOccupied[i + RunNum][j] == 0:
-          DropoffLocation[i + RunNum][j] = 1
+      for i in range(RunNum, RunNum + 2):
+        if DropoffLocation[i][j] == 0 and LocationColor[i][j] == CarColor[k] and LocationOccupied[i][j] == 0:
+          DropoffLocation[i][j] = 1
           break
       else:
         continue
       break
+  print(DropoffLocation)
 
 def ArmControl(Bay):
   if Bay == 0: # All
@@ -120,33 +125,103 @@ def ArmControl(Bay):
   elif Bay == 6: # Right Arm
     RightArm.run_time(-200, 400)
 
-def Dropoff(Color):
+def IntoBay(CarColor, TurnDirection):
   robot.straight(-80)
-  if Color == ColorScan[0]:
-    {}
-  elif Color == ColorScan[1]:
+  if CarColor == ColorScan[0]:
+    pass
+  elif CarColor == ColorScan[1]:
     robot.straight(-20)
-  elif Color == ColorScan[2]:
+  elif CarColor == ColorScan[2]:
     robot.straight(-40)
-
-  robot.turn(-80)
+    
+  if TurnDirection == 'Left':
+    robot.turn(-80)
+  elif TurnDirection == 'Right':
+    robot.turn(80)
   robot.straight(180)
 
-  if Color == ColorScan[0]:
+  if CarColor == ColorScan[0]:
     ArmControl(1)
     ColorScan[0] = 7
-  elif Color == ColorScan[1]:
+  elif CarColor == ColorScan[1]:
     ArmControl(2)
     ColorScan[1] = 7
-  elif Color == ColorScan[2]:
+  elif CarColor == ColorScan[2]:
     ArmControl(3)
     ColorScan[2] = 7
 
   robot.straight(-180)
   ArmControl(4)
-  robot.turn(80)
+  if TurnDirection == 'Left':
+    robot.turn(80)
+  elif TurnDirection == 'Right':
+    robot.turn(-80)
 
-# S-Turn
+def Dropoff(RunNum):
+  # Set And Print Directions
+  SetRoute(RunNum, ColorScan)
+
+  # RunNum 0: Top Row, RunNum 1: Middle Row
+  for i in range (3):
+    if DropoffLocation[RunNum][i] == 1:
+      if Ultrasonic.distance() > 100:
+        IntoBay(LocationColor[RunNum][i], 'Left')
+        DropoffLocation[RunNum][i] = 0
+        LocationOccupied[RunNum][i] = 1
+      else:
+        LocationOccupied[RunNum][i] = 1
+        SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
+      
+    if sum(DropoffLocation[RunNum][:]) == 0 and sum(DropoffLocation[RunNum + 1][i + 1 :]) == 0:
+      break
+
+    if i != 2:
+      robot.straight(-50)
+      LineFollowingToBlack('Left', 1)
+
+  # Add for Colum 3
+  if DropoffLocation[RunNum][3] == 1 or DropoffLocation[RunNum + 1][3] == 1:
+    LineFollowingToBlack('Left', 2)
+    if DropoffLocation[RunNum][3] == 1:
+      if Ultrasonic.distance() > 100:
+        IntoBay(LocationColor[RunNum][3], 'Left')
+        DropoffLocation[RunNum][3] = 0
+        LocationOccupied[RunNum][3] = 1
+      else:
+        LocationOccupied[RunNum][3] = 1
+        SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
+
+    if DropoffLocation[RunNum + 1][3] == 1:
+      if Ultrasonic.distance() > 100:
+        IntoBay(LocationColor[RunNum + 1][3], 'Right')
+        DropoffLocation[RunNum + 1][3] = 0
+        LocationOccupied[RunNum + 1][3] = 1
+      else:
+        LocationOccupied[RunNum + 1][3] = 1
+        SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
+
+
+  # Turn To Next Row Down | Need To Replace
+  robot.turn(160)
+  robot.straight(250)
+  LineFollowingToBlack('Left', 2)
+
+  # RunNum 0: Middle Row, RunNum 1: Bottem Row
+  for j in reversed(range(i + 1)):
+    if DropoffLocation[RunNum + 1][j] == 1:
+      if Ultrasonic.distance() > 100:
+        IntoBay(LocationColor[RunNum + 1][j], 'Left')
+        DropoffLocation[RunNum + 1][j] = 0
+        LocationOccupied[RunNum][i] = 1
+      else:
+        LocationOccupied[RunNum][i] = 1
+        SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
+
+    if j != 0:
+      robot.straight(-50)
+      LineFollowingToBlack('Left', 1)
+
+# S-Turn Out Of Base
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
 
@@ -159,7 +234,7 @@ robot.straight(-260)
 robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
-robot.turn(0) # Squaring always is angleded to the left so this should counter that
+robot.turn(2) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 # First Scan
@@ -175,51 +250,44 @@ for i in reversed(range(5)):
 for i in range(5):
   if (FirstColorScan[i] == Color.RED):
     FirstColorScan[i] = 0
-  if (FirstColorScan[i] == Color.GREEN):
+  elif (FirstColorScan[i] == Color.GREEN):
     FirstColorScan[i] = 1
-  if (FirstColorScan[i] == Color.BLUE):
+  elif (FirstColorScan[i] == Color.BLUE):
     FirstColorScan[i] = 2
-  if (FirstColorScan[i] == Color.BLACK or FirstColorScan[i] == Color.YELLOW or FirstColorScan[i] == Color.WHITE or FirstColorScan[i] == Color.BROWN or FirstColorScan[i] == None):
+  else:
     FirstColorScan[i] = 7
 
   if (SecColorScan[i] == Color.RED):
     SecColorScan[i] = 0
-  if (SecColorScan[i] == Color.GREEN):
+  elif (SecColorScan[i] == Color.GREEN):
     SecColorScan[i] = 1
-  if (SecColorScan[i] == Color.BLUE):
+  elif (SecColorScan[i] == Color.BLUE):
     SecColorScan[i] = 2
-  if (SecColorScan[i] == Color.BLACK or SecColorScan[i] == Color.YELLOW or SecColorScan[i] == Color.WHITE or SecColorScan[i] == Color.BROWN or SecColorScan[i] == None):
+  else:
     SecColorScan[i] = 7
 
-  if (FirstColorScan[i] != 7):
-    ColorScan[i] = FirstColorScan[i]
-  else:
-    ColorScan[i] = SecColorScan[i]
+  ColorScan[i] = FirstColorScan[i] if FirstColorScan[i] != 7 else SecColorScan[i]
 
-ColorScan[5] = LastCar(ColorScan)
+ColorScan[5] = LastCar(ColorScan) # Throught Process Of Elimination Determine Last Car Color
 
-# Save To Text File Because Of Posible Disconnect
-file = open("color.txt", "w")
-file.write("FirstColorScan = " + repr(FirstColorScan) + "\n" + "SecColorScan = " + repr(SecColorScan) + "\n" + "ColorScan = " + repr(ColorScan) + "\n")
-file.close()
-
-# If Connected Print
+# If Connected Print To Terminal
 print(ColorScan)
 
+# Move To Pickup Run 1
 robot.straight(-250)
 robot.turn(-90)
 robot.straight(50)
 LineSquaring(1)
 
-LeftArm.run_time(200, 400) # Open Arm
-RightArm.run_time(-200, 400) # Open Arm
-
-robot.straight(-200)
+ArmControl(0) # Open Arms
+robot.straight(-190)
 robot.turn(80)
 LineSquaring(-1)
+
+# Pickup Run 1
 robot.turn(-20)
 robot.straight(125)
-robot.turn(-10)
+robot.turn(-8)
 robot.straight(200)
 
 LeftArm.run_target(-200, 0) # Close Left Arm (Can't Close Right Arm Until Turn)
@@ -236,43 +304,10 @@ while LeftColor.color() != Color.WHITE:
 
 LineFollowingToBlack('Left', 2)
 
-SetLocation(1, ColorScan)
+Dropoff(1) # Dropoff Run 1
 
-print(DropoffLocation)
-
-# Middle Row
-for i in range (4):
-  if DropoffLocation[1][i] == 1:
-    if Ultrasonic.distance() > 100:
-      Dropoff(LocationColor[1][i])
-      DropoffLocation[1][i] = 0
-    else:
-      SetLocation(RunNum, CarColor) # Update Route To Avoid Obstacle
-    LocationOccupied[1][i] = 1
-    
-  if sum(DropoffLocation[1][:]) == 0 and sum(DropoffLocation[2][i+1 :]) == 0:
-    break
-
-  robot.straight(-50)
-  LineFollowingToBlack('Left', 1)
-  
-robot.straight(-250)
-robot.turn(160)
-LineFollowingToBlack('Left', 2)
-
-# Bottem Row
-for j in reversed(range(i + 1)):
-  if DropoffLocation[2][j] == 1:
-    if Ultrasonic.distance() > 100:
-      Dropoff(LocationColor[2][j])
-      DropoffLocation[2][j] = 0
-    else:
-      SetLocation(RunNum, CarColor)
-    LocationOccupied[2][j] = 1
-
-  if j != 0:
-    robot.straight(-50)
-    LineFollowingToBlack('Left', 1)
+# Second Pickup
+ArmControl(0) # Open Arms To Let Remaining Cars Drop and Prep for pickup
 
 robot.straight(-50)
 Threshold = (9 + 70) / 2 # Black = 9, White = 70
@@ -287,13 +322,16 @@ robot.turn(90)
 LineSquaring(-1)
 robot.turn(4) # Squaring always is angleded to the left so this should counter that
 
-ArmControl(0)
-
-robot.straight(340)
+robot.straight(350)
 robot.turn(-20)
-robot.straight(125)
-robot.turn(-10)
-robot.straight(150)
-robot.turn(30)
+robot.straight(240)
+robot.turn(20)
+robot.straight(20)
+
+ArmControl(4) # Close Arms
+
+# LineFollowingToBlack('Left', 2)
+
+# Dropoff(0)
 
 print('Time: ' + str(time.time() - StartTime))
