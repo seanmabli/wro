@@ -76,7 +76,7 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
     if(Sensor == 'Right'):
       Deviation = (RightColor.reflection() - Threshold)
     turn_rate = ProportionalGain * Deviation
-    robot.drive(-150, turn_rate)
+    robot.drive(-175, turn_rate)
 
   MotorHold()
 
@@ -289,23 +289,19 @@ robot.turn(80)
 LineSquaring(-1)
 
 # Pickup Run 1
-robot.turn(-20)
+robot.turn(-15)
 robot.straight(125)
-robot.turn(-8)
-robot.straight(200)
+robot.turn(-10)
+robot.straight(100)
+robot.turn(10)
+robot.straight(10)
 
-LeftArm.run_target(-200, 0) # Close Left Arm (Can't Close Right Arm Until Turn)
-robot.turn(-55)
-RightArm.run_target(200, 0) # Close Arm
+ArmControl(4) # Close Arms
 
-robot.straight(200)
-robot.turn(90)
-
-robot.drive(-200, 25)
-time.sleep(1.2)
-while LeftColor.color() != Color.WHITE:
-  robot.drive(-200, 25)
-
+# Move To Dropoff 1
+robot.turn(15)
+robot.straight(-325)
+robot.turn (80)
 LineFollowingToBlack('Left', 2)
 
 Dropoff(1) # Dropoff Run 1
