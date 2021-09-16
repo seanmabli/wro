@@ -125,13 +125,13 @@ def ArmControl(Bay):
   elif Bay == 6: # Right Arm
     RightArm.run_time(-200, 400)
 
-def IntoBay(CarColor, TurnDirection):
+def IntoBay(CarColor, RunNum, TurnDirection):
   robot.straight(-80)
-  if CarColor == ColorScan[0]:
+  if CarColor == ColorScan[0 + (3 - (RunNum * 3))]:
     pass
-  elif CarColor == ColorScan[1]:
+  elif CarColor == ColorScan[1 + (3 - (RunNum * 3))]:
     robot.straight(-20)
-  elif CarColor == ColorScan[2]:
+  elif CarColor == ColorScan[2 + (3 - (RunNum * 3))]:
     robot.straight(-40)
     
   if TurnDirection == 'Left':
@@ -140,13 +140,13 @@ def IntoBay(CarColor, TurnDirection):
     robot.turn(80)
   robot.straight(180)
 
-  if CarColor == ColorScan[0]:
+  if CarColor == ColorScan[0 + (3 - (RunNum * 3))]:
     ArmControl(1)
     ColorScan[0] = 7
-  elif CarColor == ColorScan[1]:
+  elif CarColor == ColorScan[1 + (3 - (RunNum * 3))]:
     ArmControl(2)
     ColorScan[1] = 7
-  elif CarColor == ColorScan[2]:
+  elif CarColor == ColorScan[2 + (3 - (RunNum * 3))]:
     ArmControl(3)
     ColorScan[2] = 7
 
@@ -165,7 +165,7 @@ def Dropoff(RunNum):
   for i in range (3):
     if DropoffLocation[RunNum][i] == 1:
       if Ultrasonic.distance() > 100:
-        IntoBay(LocationColor[RunNum][i], 'Left')
+        IntoBay(LocationColor[RunNum][i], RunNum, 'Left')
         DropoffLocation[RunNum][i] = 0
         LocationOccupied[RunNum][i] = 1
       else:
@@ -184,7 +184,7 @@ def Dropoff(RunNum):
     LineFollowingToBlack('Left', 2)
     if DropoffLocation[RunNum][3] == 1:
       if Ultrasonic.distance() > 100:
-        IntoBay(LocationColor[RunNum][3], 'Left')
+        IntoBay(LocationColor[RunNum][3], RunNum, 'Left')
         DropoffLocation[RunNum][3] = 0
         LocationOccupied[RunNum][3] = 1
       else:
@@ -193,7 +193,7 @@ def Dropoff(RunNum):
 
     if DropoffLocation[RunNum + 1][3] == 1:
       if Ultrasonic.distance() > 100:
-        IntoBay(LocationColor[RunNum + 1][3], 'Right')
+        IntoBay(LocationColor[RunNum + 1][3], RunNum, 'Right')
         DropoffLocation[RunNum + 1][3] = 0
         LocationOccupied[RunNum + 1][3] = 1
       else:
@@ -210,7 +210,7 @@ def Dropoff(RunNum):
   for j in reversed(range(i + 1)):
     if DropoffLocation[RunNum + 1][j] == 1:
       if Ultrasonic.distance() > 100:
-        IntoBay(LocationColor[RunNum + 1][j], 'Left')
+        IntoBay(LocationColor[RunNum + 1][j], RunNum, 'Left')
         DropoffLocation[RunNum + 1][j] = 0
         LocationOccupied[RunNum][i] = 1
       else:
@@ -322,16 +322,24 @@ robot.turn(90)
 LineSquaring(-1)
 robot.turn(4) # Squaring always is angleded to the left so this should counter that
 
-robot.straight(350)
+robot.straight(350) # First Car In Bay
 robot.turn(-20)
-robot.straight(240)
-robot.turn(20)
-robot.straight(20)
+robot.straight(120) # Second Car In Bay
+robot.turn(-5)
+robot.straight(100)
+robot.turn(10)
+robot.straight(20) # Third Car In Bay
+robot.turn(15)
+robot.straight(25)
 
 ArmControl(4) # Close Arms
 
-# LineFollowingToBlack('Left', 2)
+robot.straight(-200)
+robot.turn(85)
+robot.straight(-200)
 
-# Dropoff(0)
+LineFollowingToBlack('Left', 2)
+
+Dropoff(0)
 
 print('Time: ' + str(time.time() - StartTime))
