@@ -76,7 +76,7 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
     if(Sensor == 'Right'):
       Deviation = (RightColor.reflection() - Threshold)
     turn_rate = ProportionalGain * Deviation
-    robot.drive(-100, turn_rate)
+    robot.drive(-150, turn_rate)
 
   MotorHold()
 
@@ -126,7 +126,7 @@ def ArmControl(Bay):
     RightArm.run_time(-200, 400)
 
 def IntoBay(CarColor, RunNum, TurnDirection):
-  robot.straight(-80)
+  robot.straight(-50)
   if CarColor == ColorScan[0 + (3 - (RunNum * 3))]:
     pass
   elif CarColor == ColorScan[1 + (3 - (RunNum * 3))]:
@@ -164,7 +164,8 @@ def Dropoff(RunNum):
   # RunNum 0: Top Row, RunNum 1: Middle Row
   for i in range (3):
     if DropoffLocation[RunNum][i] == 1:
-      if Ultrasonic.distance() > 100:
+      robot.straight(-30)
+      if Ultrasonic.distance() > 200:
         IntoBay(LocationColor[RunNum][i], RunNum, 'Left')
         DropoffLocation[RunNum][i] = 0
         LocationOccupied[RunNum][i] = 1
@@ -183,7 +184,8 @@ def Dropoff(RunNum):
   if DropoffLocation[RunNum][3] == 1 or DropoffLocation[RunNum + 1][3] == 1:
     LineFollowingToBlack('Left', 2)
     if DropoffLocation[RunNum][3] == 1:
-      if Ultrasonic.distance() > 100:
+      robot.straight(-30)
+      if Ultrasonic.distance() > 200:
         IntoBay(LocationColor[RunNum][3], RunNum, 'Left')
         DropoffLocation[RunNum][3] = 0
         LocationOccupied[RunNum][3] = 1
@@ -192,7 +194,8 @@ def Dropoff(RunNum):
         SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
 
     if DropoffLocation[RunNum + 1][3] == 1:
-      if Ultrasonic.distance() > 100:
+      robot.straight(-30)
+      if Ultrasonic.distance() > 200:
         IntoBay(LocationColor[RunNum + 1][3], RunNum, 'Right')
         DropoffLocation[RunNum + 1][3] = 0
         LocationOccupied[RunNum + 1][3] = 1
@@ -209,7 +212,8 @@ def Dropoff(RunNum):
   # RunNum 0: Middle Row, RunNum 1: Bottem Row
   for j in reversed(range(i + 1)):
     if DropoffLocation[RunNum + 1][j] == 1:
-      if Ultrasonic.distance() > 100:
+      robot.straight(-30)
+      if Ultrasonic.distance() > 200:
         IntoBay(LocationColor[RunNum + 1][j], RunNum, 'Left')
         DropoffLocation[RunNum + 1][j] = 0
         LocationOccupied[RunNum][i] = 1
