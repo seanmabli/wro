@@ -12,9 +12,9 @@ LocationColor = [[0, 0, 1, 2], [1, 0, 1, 2], [2, 2, 0, 1]]
 LocationOccupied = [[0] * 4 for _ in range(3)]
 DropoffLocation = [[0] * 4 for _ in range(3)]
 
-FirstColorScan = [0] * 6
-SecColorScan = [0] * 6
-ColorScan = [0] * 6
+FirstColorScan = [0] * 5
+SecColorScan = [0] * 5
+ColorScan = [0] * 5
 
 # Define Motor & Sensor
 LeftMotor = Motor(Port.C)
@@ -80,15 +80,12 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
 
   MotorHold()
 
-def LastCar(CarColor):
-  return 6 - sum(CarColor) # 0 + 0 + 1 + 1 + 2 + 2 = 6
-
 def SetRoute(RunNum, CarColor):
   for x in range(3):
     for y in range(4):
       DropoffLocation[x][y] = 0
-  CarInBay = 0 if RunNum == 1 else 3
-  for k in range(CarInBay, CarInBay + 3):
+  CarInBay = [0 if RunNum == 1 else 3, 3 if RunNum == 1 else 5]
+  for k in range(CarInBay[0], CarInBay[1]):
     for j in range(4):
       for i in range(RunNum, RunNum + 2):
         if DropoffLocation[i][j] == 0 and LocationColor[i][j] == CarColor[k] and LocationOccupied[i][j] == 0:
@@ -125,7 +122,7 @@ def ArmControl(Bay):
   elif Bay == 6: # Right Arm
     RightArm.run_time(-200, 400)
 
-def IntoBay(CarColor, RunNum, TurnDirection):
+def IntoBay(CarColor, RunNum):
   robot.straight(-50)
   if CarColor == ColorScan[0 + (3 - (RunNum * 3))]:
     pass
@@ -134,10 +131,7 @@ def IntoBay(CarColor, RunNum, TurnDirection):
   elif CarColor == ColorScan[2 + (3 - (RunNum * 3))]:
     robot.straight(-40)
     
-  if TurnDirection == 'Left':
-    robot.turn(-80)
-  elif TurnDirection == 'Right':
-    robot.turn(80)
+  robot.turn(-80)
   robot.straight(180)
 
   if CarColor == ColorScan[0 + (3 - (RunNum * 3))]:
@@ -152,10 +146,7 @@ def IntoBay(CarColor, RunNum, TurnDirection):
 
   robot.straight(-180)
   ArmControl(4)
-  if TurnDirection == 'Left':
-    robot.turn(80)
-  elif TurnDirection == 'Right':
-    robot.turn(-80)
+  robot.turn(80)
 
 def Dropoff(RunNum):
   # Set And Print Directions
@@ -166,7 +157,7 @@ def Dropoff(RunNum):
     if DropoffLocation[RunNum][i] == 1:
       robot.straight(-30)
       if Ultrasonic.distance() > 200:
-        IntoBay(LocationColor[RunNum][i], RunNum, 'Left')
+        IntoBay(LocationColor[RunNum][i], RunNum)
         DropoffLocation[RunNum][i] = 0
         LocationOccupied[RunNum][i] = 1
       else:
@@ -186,34 +177,38 @@ def Dropoff(RunNum):
     if DropoffLocation[RunNum][3] == 1:
       robot.straight(-30)
       if Ultrasonic.distance() > 200:
-        IntoBay(LocationColor[RunNum][3], RunNum, 'Left')
+        IntoBay(LocationColor[RunNum][3], RunNum)
         DropoffLocation[RunNum][3] = 0
         LocationOccupied[RunNum][3] = 1
+        robot.turn(165)
+        LineFollowingToBlack('Left', 1)
       else:
         LocationOccupied[RunNum][3] = 1
         SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
 
     if DropoffLocation[RunNum + 1][3] == 1:
-      robot.straight(-30)
+      robot.turn(165)
+      robot.straight(175)
       if Ultrasonic.distance() > 200:
-        IntoBay(LocationColor[RunNum + 1][3], RunNum, 'Right')
+        IntoBay(LocationColor[RunNum + 1][3], RunNum)
         DropoffLocation[RunNum + 1][3] = 0
         LocationOccupied[RunNum + 1][3] = 1
       else:
         LocationOccupied[RunNum + 1][3] = 1
         SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
+      LineFollowingToBlack('Left', 1)
 
-  # Turn To Next Row Down | Need To Replace
-  robot.turn(165)
-  robot.straight(250)
-  LineFollowingToBlack('Left', 1)
+  else: # Turn To Next Row Down
+    robot.turn(165)
+    robot.straight(250)
+    LineFollowingToBlack('Left', 1)
 
   # RunNum 0: Middle Row, RunNum 1: Bottem Row
   for j in reversed(range(i + 1)):
     if DropoffLocation[RunNum + 1][j] == 1:
       robot.straight(-30)
       if Ultrasonic.distance() > 200:
-        IntoBay(LocationColor[RunNum + 1][j], RunNum, 'Left')
+        IntoBay(LocationColor[RunNum + 1][j], RunNum)
         DropoffLocation[RunNum + 1][j] = 0
         LocationOccupied[RunNum][i] = 1
       else:
@@ -271,8 +266,6 @@ for i in range(5):
 
   ColorScan[i] = FirstColorScan[i] if FirstColorScan[i] != 7 else SecColorScan[i]
 
-ColorScan[5] = LastCar(ColorScan) # Throught Process Of Elimination Determine Last Car Color
-
 # If Connected Print To Terminal
 print(ColorScan)
 
@@ -301,7 +294,7 @@ ArmControl(4) # Close Arms
 robot.turn(15)
 robot.straight(-325)
 robot.turn (80)
-LineFollowingToBlack('Left', 2)
+LineFollowingToBlack('Left', 1)
 
 Dropoff(1) # Dropoff Run 1
 
