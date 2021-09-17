@@ -330,7 +330,6 @@ ArmControl(4) # Close Arms
 robot.straight(-100)
 robot.turn(105)
 robot.straight(-300)
-time.sleep(5)
 
 LineFollowingToBlack('Left', 2)
 
