@@ -203,11 +203,10 @@ def Dropoff(RunNum):
         LocationOccupied[RunNum + 1][3] = 1
         SetRoute(RunNum, ColorScan) # Update Route To Avoid Obstacle
 
-
   # Turn To Next Row Down | Need To Replace
-  robot.turn(160)
+  robot.turn(165)
   robot.straight(250)
-  LineFollowingToBlack('Left', 2)
+  LineFollowingToBlack('Left', 1)
 
   # RunNum 0: Middle Row, RunNum 1: Bottem Row
   for j in reversed(range(i + 1)):
@@ -325,18 +324,13 @@ robot.turn(4) # Squaring always is angleded to the left so this should counter t
 robot.straight(350) # First Car In Bay
 robot.turn(-20)
 robot.straight(120) # Second Car In Bay
-robot.turn(-5)
-robot.straight(100)
-robot.turn(10)
-robot.straight(20) # Third Car In Bay
-robot.turn(15)
-robot.straight(25)
 
 ArmControl(4) # Close Arms
 
-robot.straight(-200)
-robot.turn(85)
-robot.straight(-200)
+robot.straight(-100)
+robot.turn(105)
+robot.straight(-300)
+time.sleep(5)
 
 LineFollowingToBlack('Left', 2)
 
