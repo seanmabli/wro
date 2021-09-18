@@ -1,8 +1,10 @@
 #!/usr/bin/env pybricks-micropython
 
+from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, ColorSensor, UltrasonicSensor
-from pybricks.parameters import Port, Color
+from pybricks.parameters import Port, Color, Button
 from pybricks.robotics import DriveBase
+from pybricks.media.ev3dev import Image, ImageFile
 import time
 
 StartTime = time.time()
@@ -76,7 +78,7 @@ def LineFollowingToBlack(Sensor, ProportionalGain):
     if(Sensor == 'Right'):
       Deviation = (RightColor.reflection() - Threshold)
     turn_rate = ProportionalGain * Deviation
-    robot.drive(-175, turn_rate)
+    robot.drive(-180, turn_rate)
 
   MotorHold()
 
@@ -199,7 +201,7 @@ def Dropoff(RunNum):
       LineFollowingToBlack('Left', 1)
 
   else: # Turn To Next Row Down
-    robot.turn(165)
+    robot.turn(160)
     robot.straight(250)
     LineFollowingToBlack('Left', 1)
 
@@ -219,6 +221,11 @@ def Dropoff(RunNum):
       robot.straight(-50)
       LineFollowingToBlack('Left', 1)
 
+ev3 = EV3Brick()
+ev3.screen.clear()
+while Button.CENTER not in ev3.buttons.pressed():
+  pass
+
 # S-Turn Out Of Base
 RightMotor.run_target(400, -300)
 LeftMotor.run_target(400, -300)
@@ -232,7 +239,7 @@ robot.straight(-260)
 robot.turn(-80)
 robot.straight(150)
 LineSquaring(-1)
-robot.turn(2) # Squaring always is angleded to the left so this should counter that
+robot.turn(3) # Squaring always is angleded to the left so this should counter that
 robot.straight(35)
 
 # First Scan
