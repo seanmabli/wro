@@ -107,7 +107,7 @@ def ArmControl(Bay):
 
   elif Bay == 2: # Bay 2
     LeftArm.run_target(200, 35)
-    RightArm.run_target(200, -30)
+    RightArm.run_target(200, -25)
 
   elif Bay == 3: # Bay 3
     RightArm.run_time(-200, 400)
@@ -286,7 +286,7 @@ robot.straight(125)
 robot.turn(-10)
 robot.straight(100)
 robot.turn(10)
-robot.straight(10)
+robot.straight(20)
 
 ArmControl(4) # Close Arms
 
@@ -320,11 +320,11 @@ robot.straight(120) # Second Car In Bay
 
 ArmControl(4) # Close Arms
 
-robot.straight(-100)
-robot.turn(105)
+robot.straight(-75)
+robot.turn(100)
 robot.straight(-300)
 
-LineFollowingToBlack('Left', 2)
+LineFollowingToBlack('Left', 1)
 
 Dropoff(0)
 
