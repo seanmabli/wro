@@ -1,0 +1,30 @@
+percentage at each bay
+
+    ball = 50%
+    laundry = 75%
+    water = 50%
+
+    ball or water = 100% * 13.5 = 13.5
+    ball and water = 0% * 27 = 0
+    ball or laundry = 87.5% * 14.5 = 12.6875
+    ball and laundry = 37.5% * 29 = 10.875
+    water or laundry = 87.5% * 15 = 13.125
+    water and laundry = 37.5% * 30 = 11.25
+
+    avg ball = 9.265625
+    avg water = 9.46875
+    avg laundry = 11.984375
+
+points
+
+    laundry and ball or water = 132
+    just ball or water = 44
+    just laundry = 48
+
+ideas
+
+    single central bay (width 5 blocks)
+    fliping fork with vertial motion (2 mini motors)
+    2 color for line following
+    1 color for marking block and laundry presence detection
+    1 gyro for straight
