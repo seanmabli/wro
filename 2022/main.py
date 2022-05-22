@@ -16,7 +16,7 @@ Gyro = GyroSensor(Port.S4)
 axle_track = 157
 
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=axle_track)
-robot.settings( straight_speed=200, turn_rate=65)
+robot.settings( straight_speed=300)
 
 def lfBlack(Sensor, ProportionalGain=1):
   Threshold = (9 + 74) / 2 # Black = 9, White = 74
@@ -44,6 +44,11 @@ def lfDistance(Sensor, distance, ProportionalGain=1):
   robot.stop()
 
 def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', kp=0.25, ki=0, kd=0.5):
+  if sensor not in [RightColor, LeftColor]:
+    raise Exception('sensor must be RightColor or LeftColor')
+  if sideofsensor not in ['in', 'out']:
+    raise Exception('sideofsensor must be "in" or "out"')
+  
   target = (9 + 74) / 2 # Black = 9, White = 74
   gyrodev = []
   error = 0
@@ -70,7 +75,15 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', kp=0.25, ki=0,
   return sum(gyrodev[100 : -100]) / (len(gyrodev) - 200)
   # return sum(gyrodev) / len(gyrodev)
 
-def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5):
+def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160): # wait distance is the # of mm after a black it waits until continue detecting blacks
+  if sensor not in [RightColor, LeftColor]:
+    raise Exception('sensor must be RightColor or LeftColor')
+  if sideofsensor not in ['in', 'out']:
+    raise Exception('sideofsensor must be "in" or "out"')
+
+  if sensor == LeftColor:
+    sideofsensor = 'in' if sideofsensor == 'out' else 'out'
+
   target = (9 + 74) / 2 # Black = 9, White = 74
   gyrodev = []
   error = 0
@@ -96,62 +109,86 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
     turn = kp * error + ki * integral + kd * derivative
     lasterror = error
 
-    robot.drive(180, turn)
+    robot.drive(speed, turn)
     gyrodev.append(abs(Gyro.angle() - lastgyro))
     lastgyro = Gyro.angle()
   robot.stop()
   
-def gurn(turn, tp='tank', speed=100): # gurn = gyro + turn ;)
+def gurn(turn, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
+  if tp not in ['tank', 'pivot']:
+    raise Exception('tp must be "tank" or "pivot"')
+  if fb not in ['forward', 'backward']:
+    raise Exception('fb must be "forward" or "backward"')
+  
+  if fb == 'backward':
+    speed *= -1
+
   startangle = robot.angle()
   if tp == 'tank':
-    robot.drive(0, -speed)
+    if turn < 0:
+      robot.drive(0, speed)
+    else:
+      robot.drive(0, -speed)
   elif tp == 'pivot':
     if turn < 0:
       LeftMotor.run(speed)
     else:
       RightMotor.run(speed)
+
   while abs(startangle - robot.angle()) < abs(turn):
     pass
-  robot.stop()
-  LeftMotor.stop()
-  RightMotor.stop()
 
-def sTurn(rl, turn, fb='forward', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
+  if tp == 'tank':
+    robot.stop()
+  elif tp == 'pivot':
+    LeftMotor.hold()
+    RightMotor.hold()
+
+def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
+  if rl not in ['right', 'left']:
+    raise Exception('rl must be "right" or "left"')
+  if fb not in ['forward', 'backward']:
+    raise Exception('fb must be "forward" or "backward"')
+  
   if rl == 'right':
     turn *= -1
   if fb == 'backward':
     drive *= -1
 
-  gurn(turn, tp='pivot', speed=turn_rate)
+  gurn(turn, tp=tp, fb=fb, speed=turn_rate)
   if drive != 0:
     robot.straight(drive)
-  gurn(-turn, tp='pivot', speed=turn_rate)
+  robot.stop()
+  gurn(-turn, tp=tp, fb=fb, speed=turn_rate)
+
+def staight(distance):
+  robot.straight(distance)
+  robot.stop()
+
+def sweep(sensor):
+  if sensor not in [RightColor, LeftColor]:
+    raise Exception('sensor must be RightColor or LeftColor')
+
+  pass
 
 ev3 = EV3Brick()
 ev3.screen.clear()
 startangle = Gyro.angle()
-starttime = time.time()
 while Button.CENTER not in ev3.buttons.pressed():
   pass
 print(Gyro.angle() - startangle)
+starttime = time.time()
 
-#print(lfpid('right', distance=1500, kd=0.4))
+staight(70)
+lfpidBlack()
+gurn(-90)
+sTurn(rl='left', fb='forward', tp='pivot', turn=35, turn_rate=200)
+lfpidBlack(sensor=LeftColor, sideofsensor='out')
+sTurn(rl='left', fb='backward', tp='tank', drive=130, turn=90, turn_rate=60)
+staight(-260)
+sTurn(rl='right', fb='forward', tp='tank', drive=130, turn=90, turn_rate=60)
+lfpidBlack(sensor=LeftColor, sideofsensor='out')
+gurn(-90, tp='pivot', speed=300)
+lfpidBlack(sensor=LeftColor, sideofsensor='out')
 
-# 0.25, 0, 0 = 0.01955
-# 0.25, 0, 0.4 = 0.01286
-# 0.25, 0, 0.5 = 0.01639
-# 0.25, 0, 1 = 0.017889
-
-# gurn(90, tp='tank')
-
-# robot.straight(70)
-# lfpidBlack()
-# gurn(90)
-# sTurn('left', 'forward', 40, 70)
-# lfpidDistance(distance=150, sensor=LeftColor, sideofsensor='out')
-
-sTurn('left', 90, turn_rate=200)
-sTurn('rigtt', 90, turn_rate=200)
-sTurn('left', 90, 'backward', turn_rate=200)
-sTurn('right', 90, 'backward', turn_rate=200)
 print(time.time() - starttime)
