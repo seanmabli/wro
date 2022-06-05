@@ -6,16 +6,17 @@ from pybricks.parameters import Port, Color, Button, Direction
 from pybricks.robotics import DriveBase
 import time
 
-LeftMotor = Motor(Port.C, Direction.COUNTERCLOCKWISE)
+GrabMotor = Motor(Port.A)
 RightMotor = Motor(Port.B, Direction.COUNTERCLOCKWISE)
+LeftMotor = Motor(Port.C, Direction.COUNTERCLOCKWISE)
+LiftMotor = Motor(Port.D)
 
+Gyro = GyroSensor(Port.S1)
 LeftColor = ColorSensor(Port.S2)
 RightColor = ColorSensor(Port.S3)
-Gyro = GyroSensor(Port.S4)
+FrontColor = ColorSensor(Port.S4)
 
-axle_track = 157
-
-robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=axle_track)
+robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=157)
 robot.settings( straight_speed=300)
 
 def lfBlack(Sensor, ProportionalGain=1):
@@ -171,12 +172,27 @@ def sweep(sensor):
 
   pass
 
+def grab(oc='open'):
+  if oc == 'open':
+    GrabMotor.stop()
+    time.sleep(0.1)
+    GrabMotor.run_angle(100, -30)
+  elif oc == 'close':
+    GrabMotor.run(200)
+
+def lift(up='up'):
+  if up == 'up':
+    LiftMotor.run_angle(200, 80)
+  elif up == 'down':
+    LiftMotor.run_angle(200, -80)
+
 ev3 = EV3Brick()
 ev3.screen.clear()
 startangle = Gyro.angle()
 while Button.CENTER not in ev3.buttons.pressed():
   pass
 print(Gyro.angle() - startangle)
+
 starttime = time.time()
 
 staight(70)
@@ -184,9 +200,11 @@ lfpidBlack()
 gurn(-90)
 sTurn(rl='left', fb='forward', tp='pivot', turn=35, turn_rate=200)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
-sTurn(rl='left', fb='backward', tp='tank', drive=130, turn=90, turn_rate=60)
+lift('up')
+sTurn(rl='left', fb='backward', tp='tank', drive=150, turn=90, turn_rate=60)
 staight(-260)
-sTurn(rl='right', fb='forward', tp='tank', drive=130, turn=90, turn_rate=60)
+lift('down')
+sTurn(rl='right', fb='forward', tp='tank', drive=110, turn=45, turn_rate=60)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
 gurn(-90, tp='pivot', speed=300)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
