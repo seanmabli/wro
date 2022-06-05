@@ -162,7 +162,7 @@ def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, 
   robot.stop()
   gurn(-turn, tp=tp, fb=fb, speed=turn_rate)
 
-def staight(distance):
+def straight(distance):
   robot.straight(distance)
   robot.stop()
 
@@ -195,18 +195,32 @@ print(Gyro.angle() - startangle)
 
 starttime = time.time()
 
-staight(70)
+'''
+# old start code
+straight(70)
 lfpidBlack()
 gurn(-90)
 sTurn(rl='left', fb='forward', tp='pivot', turn=35, turn_rate=200)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
 lift('up')
 sTurn(rl='left', fb='backward', tp='tank', drive=150, turn=90, turn_rate=60)
-staight(-260)
+straight(-260)
+gurn(20)
 lift('down')
+gurn(-20)
 sTurn(rl='right', fb='forward', tp='tank', drive=110, turn=45, turn_rate=60)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
 gurn(-90, tp='pivot', speed=300)
 lfpidBlack(sensor=LeftColor, sideofsensor='out')
+gurn(90, tp='pivot', speed=300)
+straight(360)
+gurn(-90, tp='pivot', speed=300)
+'''
+
+straight(70)
+lfpidBlack(sensor=LeftColor, sideofsensor='in')
+straight(100)
+gurn(-90)
+
 
 print(time.time() - starttime)
