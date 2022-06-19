@@ -76,11 +76,18 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', kp=0.25, ki=0,
   return sum(gyrodev[100 : -100]) / (len(gyrodev) - 200)
   # return sum(gyrodev) / len(gyrodev)
 
-def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160): # wait distance is the # of mm after a black it waits until continue detecting blacks
+def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
   if sensor not in [RightColor, LeftColor]:
     raise Exception('sensor must be RightColor or LeftColor')
   if sideofsensor not in ['in', 'out']:
     raise Exception('sideofsensor must be "in" or "out"')
+  if threshold not in ['t', 'x'] and not threshold.isint():
+    raise Exception('threshold must be "t" or "x" or an integer')
+
+  if threshold == 't':
+    threshold = 22
+  elif threshold == 'x':
+    threshold = 15
 
   if sensor == LeftColor:
     sideofsensor = 'in' if sideofsensor == 'out' else 'out'
@@ -97,7 +104,7 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
   lastgyro = Gyro.angle()
   lastdistance = abs(robot.distance())
   while count < blacks:
-    if (LeftColor.reflection() + RightColor.reflection()) / 2 < 15 and lastdistance + waitdistance < abs(robot.distance()):
+    if (LeftColor.reflection() + RightColor.reflection()) / 2 < threshold and lastdistance + waitdistance < abs(robot.distance()):
       count += 1
       lastdistance = abs(robot.distance())
 
@@ -113,6 +120,7 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
     robot.drive(speed, turn)
     gyrodev.append(abs(Gyro.angle() - lastgyro))
     lastgyro = Gyro.angle()
+
   robot.stop()
   
 def gurn(turn, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
@@ -144,6 +152,34 @@ def gurn(turn, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
   elif tp == 'pivot':
     LeftMotor.hold()
     RightMotor.hold()
+
+def fraudulo(dividend, divisor): # dividend / divisor
+  signa = 1 if dividend > 0 else -1
+  signb = 1 if divisor > 0 else -1
+  dividend, divisor = abs(dividend), abs(divisor)
+  return signa * signb * (dividend - divisor * (dividend // divisor)) / divisor
+
+def orient(speed=30):
+  print(Gyro.angle(), startangle)
+
+  '''
+  if Gyro.angle() < startangle:
+    if Gyro.angle() % 360 > 180:
+      robot.drive(0, -speed)
+    elif Gyro.angle() % 360  180:
+    robot.drive(0, speed)
+
+  '''
+  if Gyro.angle() < 0:
+    while fraudulo(Gyro.angle(), 360) < 0:
+      robot.drive(0, -speed)
+      print(Gyro.angle())
+  else:
+    while fraudulo(Gyro.angle(), 360) > 0:
+      robot.drive(0, speed)
+      print(Gyro.angle())
+
+  robot.stop()
 
 def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
   if rl not in ['right', 'left']:
@@ -180,7 +216,7 @@ def grab(oc='open'):
   elif oc == 'close':
     GrabMotor.run(200)
 
-def lift(up='up'):
+def lift(ud='up'):
   if up == 'up':
     LiftMotor.run_angle(200, 80)
   elif up == 'down':
@@ -193,34 +229,23 @@ while Button.CENTER not in ev3.buttons.pressed():
   pass
 print(Gyro.angle() - startangle)
 
+Gyro.reset_angle(0)
 starttime = time.time()
 
-'''
-# old start code
 straight(70)
-lfpidBlack()
-gurn(-90)
-sTurn(rl='left', fb='forward', tp='pivot', turn=35, turn_rate=200)
-lfpidBlack(sensor=LeftColor, sideofsensor='out')
-lift('up')
-sTurn(rl='left', fb='backward', tp='tank', drive=150, turn=90, turn_rate=60)
-straight(-260)
-gurn(20)
-lift('down')
-gurn(-20)
-sTurn(rl='right', fb='forward', tp='tank', drive=110, turn=45, turn_rate=60)
-lfpidBlack(sensor=LeftColor, sideofsensor='out')
-gurn(-90, tp='pivot', speed=300)
-lfpidBlack(sensor=LeftColor, sideofsensor='out')
-gurn(90, tp='pivot', speed=300)
-straight(360)
-gurn(-90, tp='pivot', speed=300)
-'''
-
-straight(70)
-lfpidBlack(sensor=LeftColor, sideofsensor='in')
-straight(100)
-gurn(-90)
-
+lfpidBlack(sensor=RightColor, sideofsensor='in')
+straight(120)
+gurn(90)
+lfpidBlack(sensor=RightColor, sideofsensor='in', threshold='t')   
+straight(-20)
+sTurn(rl='left', fb='forward', turn=60, turn_rate=250)
+gurn(-90, tp='pivot', speed=200)
+grab(oc='open')
+straight(-130) # maybe change to gyro stright
+for _ in range(2):
+  grab(oc='close')
+  time.sleep(0.5)
+  grab(oc='open')
+  straight(-100)
 
 print(time.time() - starttime)
