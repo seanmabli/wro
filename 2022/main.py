@@ -4,6 +4,7 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, ColorSensor, GyroSensor
 from pybricks.parameters import Port, Color, Button, Direction
 from pybricks.robotics import DriveBase
+from pybricks.media.ev3dev import SoundFile
 import time
 
 GrabMotor = Motor(Port.A)
@@ -14,7 +15,7 @@ LiftMotor = Motor(Port.D, Direction.COUNTERCLOCKWISE)
 Gyro = GyroSensor(Port.S1)
 LeftColor = ColorSensor(Port.S2)
 RightColor = ColorSensor(Port.S3)
-# FrontColor = ColorSensor(Port.S4)
+FrontColor = ColorSensor(Port.S4)
 
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=157)
 robot.settings(straight_speed=300)
@@ -76,7 +77,7 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', kp=0.25, ki=0,
   return sum(gyrodev[100 : -100]) / (len(gyrodev) - 200)
   # return sum(gyrodev) / len(gyrodev)
 
-def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=200, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
+def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
   if sensor not in [RightColor, LeftColor]:
     raise Exception('sensor must be RightColor or LeftColor')
   if sideofsensor not in ['in', 'out']:
@@ -123,9 +124,9 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
 
   robot.stop()
   
-def gurn(turn, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
-  if tp not in ['tank', 'pivot']:
-    raise Exception('tp must be "tank" or "pivot"')
+def gurn(turn, aggresion=30, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
+  if tp not in ['tank', 'pivot', 'circle']:
+    raise Exception('tp must be "tank" or "pivot" or "circle"')
   if fb not in ['forward', 'backward']:
     raise Exception('fb must be "forward" or "backward"')
   
@@ -143,6 +144,11 @@ def gurn(turn, tp='tank', fb='forward', speed=100): # gurn = gyro + turn ;)
       LeftMotor.run(speed)
     else:
       RightMotor.run(speed)
+  elif tp == 'circle':
+    if turn < 0:
+      robot.drive(speed, -aggresion)
+    else:
+      robot.drive(speed, aggresion)
 
   while abs(startangle - robot.angle()) < abs(turn):
     pass
@@ -212,15 +218,15 @@ def grab(oc='open'):
   if oc == 'open':
     GrabMotor.stop()
     time.sleep(0.1)
-    GrabMotor.run_angle(100, -30)
+    GrabMotor.run_angle(100, 30)
   elif oc == 'close':
-    GrabMotor.run(200)
+    GrabMotor.run(-200)
 
 def lift(ud='up'):
-  if up == 'up':
-    LiftMotor.run_angle(200, 80)
+  if ud == 'up':
+    LiftMotor.run_angle(400, -320)
   elif up == 'down':
-    LiftMotor.run_angle(200, -80)
+    LiftMotor.run_angle(400, 320)
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -249,7 +255,19 @@ grab(oc='open')
 straight(-100)
 grab(oc='close')
 straight(200)
-sTurn(rl='right', fb='forward', turn=306, turn_rate=250)
-gurn(-90, tp="pivot", speed=200)
+grab(oc='open')
+straight(-100)
+grab(oc='close')
+gurn(55, aggresion=45, tp='circle', speed=200)
+straight(200)
+gurn(-55, aggresion=45, tp='circle', speed=200)
+robot.stop()
+
+if FrontColor.color() == Color.GREEN:
+  ev3.speaker.play_file(SoundFile.GREEN)
+elif FrontColor.color() == Color.WHITE:
+  ev3.speaker.play_file(SoundFile.WHITE)
+else:
+  ev3.speaker.play_file(SoundFile.LASER)
 
 print(time.time() - starttime)
