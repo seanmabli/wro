@@ -9,15 +9,15 @@ import time
 GrabMotor = Motor(Port.A)
 RightMotor = Motor(Port.B, Direction.COUNTERCLOCKWISE)
 LeftMotor = Motor(Port.C, Direction.COUNTERCLOCKWISE)
-LiftMotor = Motor(Port.D)
+LiftMotor = Motor(Port.D, Direction.COUNTERCLOCKWISE)
 
 Gyro = GyroSensor(Port.S1)
 LeftColor = ColorSensor(Port.S2)
 RightColor = ColorSensor(Port.S3)
-FrontColor = ColorSensor(Port.S4)
+# FrontColor = ColorSensor(Port.S4)
 
 robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=157)
-robot.settings( straight_speed=300)
+robot.settings(straight_speed=300)
 
 def lfBlack(Sensor, ProportionalGain=1):
   Threshold = (9 + 74) / 2 # Black = 9, White = 74
@@ -76,7 +76,7 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', kp=0.25, ki=0,
   return sum(gyrodev[100 : -100]) / (len(gyrodev) - 200)
   # return sum(gyrodev) / len(gyrodev)
 
-def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
+def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=200, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
   if sensor not in [RightColor, LeftColor]:
     raise Exception('sensor must be RightColor or LeftColor')
   if sideofsensor not in ['in', 'out']:
@@ -175,7 +175,7 @@ def orient(speed=30):
       robot.drive(0, -speed)
       print(Gyro.angle())
   else:
-    while fraudulo(Gyro.angle(), 360) > 0:
+    while mod(Gyro.angle(), 360) > 0:
       robot.drive(0, speed)
       print(Gyro.angle())
 
@@ -241,11 +241,15 @@ straight(-20)
 sTurn(rl='left', fb='forward', turn=60, turn_rate=250)
 gurn(-90, tp='pivot', speed=200)
 grab(oc='open')
-straight(-130) # maybe change to gyro stright
-for _ in range(2):
-  grab(oc='close')
-  time.sleep(0.5)
-  grab(oc='open')
-  straight(-100)
+straight(-150) # maybe change to gyro stright
+LiftMotor.hold()
+grab(oc='close')
+time.sleep(0.5)
+grab(oc='open')
+straight(-100)
+grab(oc='close')
+straight(200)
+sTurn(rl='right', fb='forward', turn=306, turn_rate=250)
+gurn(-90, tp="pivot", speed=200)
 
 print(time.time() - starttime)
