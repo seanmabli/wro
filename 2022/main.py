@@ -187,6 +187,11 @@ def orient(speed=30):
 
   robot.stop()
 
+def colorScan(sensor, threshold):
+  if threshold[0] < sensor.reflection() < threshold[1]:
+    return sensor.color()
+
+
 def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
   if rl not in ['right', 'left']:
     raise Exception('rl must be "right" or "left"')
@@ -218,15 +223,19 @@ def grab(oc='open'):
   if oc == 'open':
     GrabMotor.stop()
     time.sleep(0.1)
-    GrabMotor.run_angle(100, 30)
+    GrabMotor.run_angle(100, 50)
   elif oc == 'close':
     GrabMotor.run(-200)
 
 def lift(ud='up'):
   if ud == 'up':
     LiftMotor.run_angle(400, -320)
-  elif up == 'down':
+  elif ud == 'down':
     LiftMotor.run_angle(400, 320)
+  elif ud == "downhalf":
+    LiftMotor.run_angle(400, 160)
+
+
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -238,6 +247,11 @@ print(Gyro.angle() - startangle)
 Gyro.reset_angle(0)
 starttime = time.time()
 
+baystatus = []
+
+
+# Pickup laundry
+'''
 straight(70)
 lfpidBlack(sensor=RightColor, sideofsensor='in')
 straight(120)
@@ -254,20 +268,35 @@ time.sleep(0.5)
 grab(oc='open')
 straight(-100)
 grab(oc='close')
-straight(200)
+straight(220)
 grab(oc='open')
 straight(-100)
 grab(oc='close')
-gurn(55, aggresion=45, tp='circle', speed=200)
-straight(200)
-gurn(-55, aggresion=45, tp='circle', speed=200)
+baystatus.append({"type": "water"})
+baystatus.append({"type": "water"})
+gurn(60, aggresion=45, tp='circle', speed=200)
+straight(220)
+gurn(-30, tp="pivot", speed=200)
 robot.stop()
+'''
 
-if FrontColor.color() == Color.GREEN:
-  ev3.speaker.play_file(SoundFile.GREEN)
-elif FrontColor.color() == Color.WHITE:
-  ev3.speaker.play_file(SoundFile.WHITE)
-else:
-  ev3.speaker.play_file(SoundFile.LASER)
+straight(10)
+gurn(-90, fb="backward", tp="pivot", speed=200)
+print(FrontColor.color()) # marking block
+straight(310)
+lift(ud="up")
+gurn(-45, fb="forward", tp="pivot", speed=200)
+straight(-150)
+gurn(35, fb="backward", tp="pivot", speed=200)
+grab(oc="open")
+straight(-50)
+lift(ud="down")
+grab(oc="close")
+lift(ud="up")
+gurn(90, fb="backward", tp="pivot", speed=200)
+straight(-70)
+lift(ud="downhalf")
+grab(oc="open")
+
 
 print(time.time() - starttime)
