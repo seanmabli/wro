@@ -6,6 +6,7 @@ from pybricks.parameters import Port, Color, Button, Direction
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile
 import time
+import multiprocessing
 
 GrabMotor = Motor(Port.A)
 RightMotor = Motor(Port.B, Direction.COUNTERCLOCKWISE)
@@ -226,6 +227,7 @@ def grab(oc='open'):
     GrabMotor.run_angle(100, 50)
   elif oc == 'close':
     GrabMotor.run(-200)
+    time.sleep(0.6)
 
 def lift(ud='up'):
   if ud == 'up':
@@ -234,8 +236,8 @@ def lift(ud='up'):
     LiftMotor.run_angle(400, 320)
   elif ud == "downhalf":
     LiftMotor.run_angle(400, 160)
-
-
+  elif ud == "downfull":
+    LiftMotor.run_angle(400, 550)
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -249,8 +251,7 @@ starttime = time.time()
 
 baystatus = []
 
-
-# Pickup laundry
+# Pickup laundry old
 '''
 straight(70)
 lfpidBlack(sensor=RightColor, sideofsensor='in')
@@ -280,11 +281,37 @@ gurn(-30, tp="pivot", speed=200)
 robot.stop()
 '''
 
-straight(10)
-gurn(-90, fb="backward", tp="pivot", speed=200)
+# Pickup laundry new
+gurn(15, tp='pivot', speed=200)
+straight(465)
+gurn(-58, tp='pivot', speed=200)
+straight(-70)
+grab(oc="open")
+lift(ud="downfull")
+grab(oc='close')
+grab(oc='open')
+straight(-100)
+grab(oc='close')
+straight(210)
+grab(oc='open')
+straight(-100)
+grab(oc='close')
+baystatus.append({"type": "water"})
+baystatus.append({"type": "water"})
+gurn(60, aggresion=45, tp='circle', speed=200)
+straight(220)
+gurn(-30, tp="pivot", speed=200)
+robot.stop()
+straight(15)
 print(FrontColor.color()) # marking block
-straight(310)
+
+# Red box
+straight(15)
+gurn(-90, fb="backward", tp="pivot", speed=200)
+print(FrontColor.color()) # laundry block
+straight(315)
 lift(ud="up")
+'''
 gurn(-45, fb="forward", tp="pivot", speed=200)
 straight(-150)
 gurn(35, fb="backward", tp="pivot", speed=200)
@@ -297,6 +324,6 @@ gurn(90, fb="backward", tp="pivot", speed=200)
 straight(-70)
 lift(ud="downhalf")
 grab(oc="open")
-
+'''
 
 print(time.time() - starttime)
