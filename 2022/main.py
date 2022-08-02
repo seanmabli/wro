@@ -188,11 +188,6 @@ def orient(speed=30):
 
   robot.stop()
 
-def colorScan(sensor, threshold):
-  if threshold[0] < sensor.reflection() < threshold[1]:
-    return sensor.color()
-
-
 def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
   if rl not in ['right', 'left']:
     raise Exception('rl must be "right" or "left"')
@@ -238,6 +233,36 @@ def lift(ud='up'):
     LiftMotor.run_angle(400, 160)
   elif ud == "downfull":
     LiftMotor.run_angle(400, 550)
+
+def colorScan(acceptable, direction):
+  ev3.light.on(Color.RED)
+  if FrontColor.color() in acceptable:
+    return FrontColor.color()
+  else:
+    Gyro.reset_angle(0)
+    if direction == 'in':
+      RightMotor.run(-150)
+    elif direction == 'out':
+      RightMotor.run(150)
+
+    while FrontColor.color() not in acceptable and abs(Gyro.angle()) < 40:
+      pass
+
+    robot.stop()
+
+    color = FrontColor.color()
+
+    if direction == 'in':
+      RightMotor.run(75)
+      while Gyro.angle() < 0:
+        pass
+    elif direction == 'out':
+      RightMotor.run(-75)
+      while Gyro.angle() > 0:
+        pass
+    robot.stop()
+    ev3.light.on(Color.GREEN)
+    return color
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -300,20 +325,25 @@ baystatus.append({"type": "water"})
 baystatus.append({"type": "water"})
 gurn(60, aggresion=45, tp='circle', speed=200)
 straight(220)
-gurn(-30, tp="pivot", speed=200)
+gurn(-27, tp="pivot", speed=200)
 robot.stop()
-straight(15)
-print(FrontColor.color()) # marking block
 
 # Red box
-straight(15)
-gurn(-90, fb="backward", tp="pivot", speed=200)
-print(FrontColor.color()) # laundry block
-straight(315)
-lift(ud="up")
+print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
 '''
+straight(20)
+gurn(-87, fb="backward", tp="pivot", speed=200)
+straight(315)
+RightMotor.run_angle(-150, 30)
+print(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')) # laundry block
+RightMotor.run_angle(-150, -30)
+straight(30)
 gurn(-45, fb="forward", tp="pivot", speed=200)
+lift(ud="up")
 straight(-150)
+'''
+
+'''
 gurn(35, fb="backward", tp="pivot", speed=200)
 grab(oc="open")
 straight(-50)
