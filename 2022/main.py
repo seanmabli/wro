@@ -24,25 +24,30 @@ robot.settings(straight_speed=300)
 def lfBlack(Sensor, ProportionalGain=1):
   Threshold = (9 + 74) / 2 # Black = 9, White = 74
   while (LeftColor.reflection() + RightColor.reflection()) / 2 > 15:
-    if(Sensor == 'Left'):
+    if(Sensor == LeftColor):
       Deviation = - (LeftColor.reflection() - Threshold)
-    if(Sensor == 'Right'):
+    if(Sensor == RightColor):
       Deviation = (RightColor.reflection() - Threshold)
     turn_rate = ProportionalGain * Deviation
     robot.drive(180, turn_rate)
 
   robot.stop()
 
-def lfDistance(Sensor, distance, ProportionalGain=1):
-  Threshold = (9 + 74) / 2 # Black = 9, White = 74
+def lfDistance(sensor, distance, sideofsensor, proportionalGain=0.5):
+  if sideofsensor not in ['in', 'out']:
+    raise Exception('sideofsensor must be "in" or "out"')
+
+  threshold = (9 + 74) / 2 # Black = 9, White = 74
+  sideofsensor = -1 if sideofsensor == 'in' else 1
   robot.reset()
+
   while abs(robot.distance()) < distance:
-    if(Sensor == 'Left'):
-      Deviation = - (LeftColor.reflection() - Threshold)
-    if(Sensor == 'Right'):
-      Deviation = (RightColor.reflection() - Threshold)
-    turn_rate = ProportionalGain * Deviation
-    robot.drive(180, turn_rate)
+    if(sensor == LeftColor):
+      Deviation = - (LeftColor.reflection() - threshold) * sideofsensor
+    if(sensor == RightColor):
+      Deviation = (RightColor.reflection() - threshold) * sideofsensor
+    turn_rate = proportionalGain * Deviation
+    robot.drive(150, turn_rate)
 
   robot.stop()
 
@@ -264,6 +269,38 @@ def colorScan(acceptable, direction):
     ev3.light.on(Color.GREEN)
     return color
 
+def LineSquaring(Num):
+  THRESHOLD = (9 + 70) / 2
+  # Move Forward To White
+  while LeftColor.color() != Color.WHITE or RightColor.color() != Color.WHITE:
+    robot.drive(-50 * Num, 0)
+
+  robot.stop()
+
+  # If Left Color Detected The White
+  if(LeftColor.color() == Color.WHITE):  
+    # Move Forward To THRESHOLD
+    while LeftColor.reflection() >= THRESHOLD:
+      robot.drive(-10 * Num, 0)
+    robot.stop()
+      
+  # If Right Color Detected The White
+  if(RightColor.color() == Color.WHITE):  
+    # Move Forward To THRESHOLD
+    while RightColor.reflection() >= THRESHOLD:
+      robot.drive(-10 * Num, 0)
+    robot.stop()
+
+  # Move Left Or Right To Get Color Reflection Equal
+  while RightColor.reflection() > LeftColor.reflection():
+    RightMotor.run(-10 * Num)
+    LeftMotor.run(10 * Num)
+  robot.stop()
+  while RightColor.reflection() < LeftColor.reflection():
+    RightMotor.run(10 * Num)
+    LeftMotor.run(-10 * Num)
+  robot.stop()
+
 ev3 = EV3Brick()
 ev3.screen.clear()
 startangle = Gyro.angle()
@@ -307,6 +344,7 @@ robot.stop()
 '''
 
 # Pickup laundry new
+'''
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
@@ -327,33 +365,44 @@ gurn(60, aggresion=45, tp='circle', speed=200)
 straight(220)
 gurn(-27, tp="pivot", speed=200)
 robot.stop()
-
-# Red box
-print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
 '''
+
+# Red box, ball
+print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
 straight(20)
-gurn(-87, fb="backward", tp="pivot", speed=200)
+gurn(-90, fb="backward", tp="pivot", speed=200)
 straight(315)
 RightMotor.run_angle(-150, 30)
 print(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')) # laundry block
 RightMotor.run_angle(-150, -30)
 straight(30)
-gurn(-45, fb="forward", tp="pivot", speed=200)
+gurn(-38, fb="forward", tp="pivot", speed=200)
 lift(ud="up")
 straight(-150)
-'''
-
-'''
-gurn(35, fb="backward", tp="pivot", speed=200)
+gurn(42, fb="backward", tp="pivot", speed=200)
 grab(oc="open")
-straight(-50)
+straight(-75)
 lift(ud="down")
 grab(oc="close")
+straight(20)
 lift(ud="up")
 gurn(90, fb="backward", tp="pivot", speed=200)
 straight(-70)
 lift(ud="downhalf")
 grab(oc="open")
-'''
+straight(60)
+lift(ud="downhalf")
+grab(oc="close")
+gurn(60, fb="forward", tp="pivot", speed=200)
+straight(200)
+
+# Red box, water
+print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
+straight(20)
+gurn(-90, fb="backward", tp="pivot", speed=200)
+straight(315)
+RightMotor.run_angle(-150, 30)
+print(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')) # laundry block
+RightMotor.run_angle(-150, -30)
 
 print(time.time() - starttime)
