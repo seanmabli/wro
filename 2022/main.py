@@ -301,6 +301,12 @@ def LineSquaring(Num):
     LeftMotor.run(-10 * Num)
   robot.stop()
 
+def frombay(baystatus, object, position):
+  if position not in ["front", "back"]:
+    raise Exception('position must be "front" or "back"')
+  if object.type not in ["water", "laundry"]:
+    raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : "_"}')
+
 ev3 = EV3Brick()
 ev3.screen.clear()
 startangle = Gyro.angle()
@@ -397,6 +403,7 @@ gurn(60, fb="forward", tp="pivot", speed=200)
 straight(200)
 
 # Red box, water
+'''
 print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
 straight(20)
 gurn(-90, fb="backward", tp="pivot", speed=200)
@@ -404,5 +411,14 @@ straight(315)
 RightMotor.run_angle(-150, 30)
 print(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')) # laundry block
 RightMotor.run_angle(-150, -30)
+straight(30)
+gurn(-38, fb="forward", tp="pivot", speed=200)
+grab(oc="open")
+straight(-150)
+grab(oc="close")
+gurn(100, fb="backward", tp="pivot", speed=200)
+gurn(-45, fb="forward", tp="pivot", speed=200)
+straight(50)
+'''
 
 print(time.time() - starttime)
