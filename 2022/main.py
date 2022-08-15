@@ -159,7 +159,7 @@ def gurn(turn, aggresion=30, tp='tank', fb='forward', speed=100): # gurn = gyro 
   while abs(startangle - robot.angle()) < abs(turn):
     pass
 
-  if tp == 'tank':
+  if tp == 'tank' or tp == 'circle':
     robot.stop()
   elif tp == 'pivot':
     LeftMotor.hold()
@@ -232,6 +232,8 @@ def grab(oc='open'):
 def lift(ud='up'):
   if ud == 'up':
     LiftMotor.run_angle(400, -320)
+  elif ud == 'uphalf':
+    LiftMotor.run_angle(400, -160)
   elif ud == 'down':
     LiftMotor.run_angle(400, 320)
   elif ud == "downhalf":
@@ -301,11 +303,54 @@ def LineSquaring(Num):
     LeftMotor.run(-10 * Num)
   robot.stop()
 
+# in mm
+water = 64
+laundry = 32
+watertowater = 64
+watertolaundry = 48
+laundrytolaundry = 32
+grabtowater = 63
+grabtolaundry = 47
+grabtoback = 248
+
 def frombay(baystatus, object, position):
+  if object["type"] not in ["water", "laundry"]:
+    raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
     raise Exception('position must be "front" or "back"')
-  if object.type not in ["water", "laundry"]:
-    raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : "_"}')
+  
+  dis = 0
+  for i, item in enumerate(reversed(baystatus)):
+    if i == 0:
+      if position == "front":
+        dis = grabtowater if item["type"] == "water" else grabtolaundry
+      elif position == "back":
+        fulldis = 0
+        for item2 in baystatus:
+          fulldis += water if item2["type"] == "water" else laundry
+        dis = grabtoback - fulldis + int(water / 2 if item["type"] == "water" else laundry / 2)
+      else:
+        raise Exception('baystatus error 0')
+    elif list(reversed(baystatus))[i - 1]["type"] == "water":
+      dis += watertowater if item["type"] == "water" else watertolaundry
+    elif list(reversed(baystatus))[i - 1]["type"] == "laundry":
+      dis += laundrytolaundry if item["type"] == "laundry" else watertolaundry
+    else:
+      raise Exception('baystatus error 1')
+
+    if object == item:
+      break
+
+  print("dis:", dis)
+  
+  grab(oc='open')
+  straight(dis)
+  grab(oc='close')
+  lift(ud='up')
+  straight(-dis - 35)
+
+  baystatus.remove(object)
+  return baystatus
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -318,39 +363,11 @@ Gyro.reset_angle(0)
 starttime = time.time()
 
 baystatus = []
-
-# Pickup laundry old
-'''
-straight(70)
-lfpidBlack(sensor=RightColor, sideofsensor='in')
-straight(120)
-gurn(90)
-lfpidBlack(sensor=RightColor, sideofsensor='in', threshold='t')   
-straight(-20)
-sTurn(rl='left', fb='forward', turn=60, turn_rate=250)
-gurn(-90, tp='pivot', speed=200)
-grab(oc='open')
-straight(-150) # maybe change to gyro stright
-LiftMotor.hold()
-grab(oc='close')
-time.sleep(0.5)
-grab(oc='open')
-straight(-100)
-grab(oc='close')
-straight(220)
-grab(oc='open')
-straight(-100)
-grab(oc='close')
-baystatus.append({"type": "water"})
-baystatus.append({"type": "water"})
-gurn(60, aggresion=45, tp='circle', speed=200)
-straight(220)
-gurn(-30, tp="pivot", speed=200)
-robot.stop()
-'''
+# remove when pickup is combined
+baystatus.append({"type" : "water"})
+baystatus.append({"type" : "water"})
 
 # Pickup laundry new
-'''
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
@@ -367,13 +384,20 @@ straight(-100)
 grab(oc='close')
 baystatus.append({"type": "water"})
 baystatus.append({"type": "water"})
-gurn(60, aggresion=45, tp='circle', speed=200)
-straight(220)
-gurn(-27, tp="pivot", speed=200)
+gurn(65, aggresion=90, tp='circle', speed=200)
+time.sleep(0.5)
+lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
+straight(30)
+gurn(90, fb="forward", tp='pivot', speed=200)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=100)
+straight(-20)
+gurn(-45, fb="forward", tp='pivot', speed=200)
+gurn(45, fb="backward", tp='pivot', speed=200)
+straight(-75)
 robot.stop()
-'''
 
 # Red box, ball
+'''
 print(colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')) # marking block
 straight(20)
 gurn(-90, fb="backward", tp="pivot", speed=200)
@@ -401,6 +425,7 @@ lift(ud="downhalf")
 grab(oc="close")
 gurn(60, fb="forward", tp="pivot", speed=200)
 straight(200)
+'''
 
 # Red box, water
 '''
@@ -409,16 +434,27 @@ straight(20)
 gurn(-90, fb="backward", tp="pivot", speed=200)
 straight(315)
 RightMotor.run_angle(-150, 30)
-print(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')) # laundry block
+color = colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')
+if color != None:
+  baystatus.append({"type" : "laundry", "color" : color})
 RightMotor.run_angle(-150, -30)
 straight(30)
 gurn(-38, fb="forward", tp="pivot", speed=200)
 grab(oc="open")
 straight(-150)
 grab(oc="close")
+straight(30)
 gurn(100, fb="backward", tp="pivot", speed=200)
 gurn(-45, fb="forward", tp="pivot", speed=200)
-straight(50)
+straight(-60)
+baystatus = frombay(baystatus, {"type" : "water"}, "back")
+straight(-30)
+lift(ud="downhalf")
+grab(oc="open")
+straight(40)
+lift(ud="downhalf")
+grab(oc="close")
+gurn(70, fb="forward", tp="pivot", speed=200)
 '''
 
 print(time.time() - starttime)
