@@ -193,7 +193,7 @@ def orient(speed=30):
 
   robot.stop()
 
-def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
+def sTurn(rl, fb, turn, tp='pivot', drive=0, turnSpeed=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
   if rl not in ['right', 'left']:
     raise Exception('rl must be "right" or "left"')
   if fb not in ['forward', 'backward']:
@@ -204,11 +204,10 @@ def sTurn(rl, fb, turn, tp='pivot', drive=0, turn_rate=100): # rl = right-left, 
   if fb == 'backward':
     drive *= -1
 
-  gurn(turn, tp=tp, fb=fb, speed=turn_rate)
+  gurn(turn, tp=tp, fb=fb, speed=turnSpeed)
   if drive != 0:
-    robot.straight(drive)
-  robot.stop()
-  gurn(-turn, tp=tp, fb=fb, speed=turn_rate)
+    straight(drive)
+  gurn(-turn, tp=tp, fb=fb, speed=turnSpeed)
 
 def straight(distance):
   robot.straight(distance)
@@ -257,7 +256,6 @@ def lift(ud='up'):
     LiftMotor.run_angle(400, 550)
 
 def colorScan(acceptable, direction):
-  ev3.light.on(Color.RED)
   if FrontColor.color() in acceptable:
     return FrontColor.color()
   else:
@@ -283,7 +281,6 @@ def colorScan(acceptable, direction):
       while Gyro.angle() > 0:
         pass
     robot.stop()
-    ev3.light.on(Color.GREEN)
     return color
 
 def LineSquaring(Num):
@@ -380,7 +377,6 @@ starttime = time.time()
 baystatus = []
 
 # start to pickup water to red box
-'''
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
@@ -407,10 +403,8 @@ gurn(-45, fb="forward", tp='pivot', speed=200)
 gurn(45, fb="backward", tp='pivot', speed=200)
 straight(-75)
 robot.stop()
-'''
 
 # red box
-'''
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
 straight(20)
 gurn(-90, fb="backward", tp="pivot", speed=200)
@@ -495,10 +489,8 @@ else:
     grab(oc="close")
     straight(40)
     gurn(90, fb="forward", tp="pivot", speed=200)
-'''
 
 # red box to green box
-'''
 sweep(sensor=RightColor, direction="left")
 lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
 straight(30)
@@ -506,7 +498,6 @@ gurn(-90, fb="forward", tp="pivot", speed=200)
 straight(-100)
 gurn(98, fb="backward", tp="pivot", speed=200)
 straight(-25)
-'''
 
 # green box
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
@@ -520,18 +511,71 @@ if color != None:
 RightMotor.run_angle(-150, -30)
 if color == None:
   if markingBlockColor == Color.GREEN: # ball
-    pass
+    gurn(90, fb="backward", tp="pivot", speed=200)
+    grab(oc="open")
+    straight(-100)
+    grab(oc="close")
+    straight(40)
+    lift(ud="up")
+    gurn(-75, fb="backward", tp="pivot", speed=200)
+    straight(-120)
+    lift(ud="downhalf")
+    grab(oc="open")
+    straight(70)
+    lift(ud="downhalf")
+    grab(oc="close")
+    straight(70)
+    # add recapture here later
+    gurn(-75, fb="forward", tp="pivot", speed=200)
+    straight(80)
   else: # water
-    pass
+    sTurn(rl="left", fb="backward", turn=60, tp='pivot', drive=75, turnSpeed=200)
+    baystatus = frombay(baystatus, {"type" : "water"}, "back")
+    straight(-15)
+    lift(ud="downhalf")
+    grab(oc="open")
+    straight(50)
+    lift(ud="downhalf")
+    grab(oc="close")
+    straight(20)
+    # add recapture here later
+    gurn(-90, fb="forward", tp="pivot", speed=200)
 else:
   straight(30)
   gurn(-38, fb="forward", tp="pivot", speed=200)
   grab(oc="open")
   straight(-150)
   if markingBlockColor == Color.GREEN: # ball
-    pass
+    gurn(48, fb="backward", tp="pivot", speed=200)
+    straight(-45)
+    grab(oc="close")
+    straight(20)
+    lift(ud="up")
+    gurn(-65, fb="backward", tp="pivot", speed=200)
+    straight(-120)
+    lift(ud="downhalf")
+    grab(oc="open")
+    straight(60)
+    lift(ud="downhalf")
+    grab(oc="close")
+    straight(50)
+    gurn(-70, fb="forward", tp="pivot", speed=200)
+    straight(60)
   elif markingBlockColor == Color.WHITE: # water
-    pass
+    grab(oc="close")
+    straight(-70)
+    gurn(-40, fb="backward", tp="pivot", speed=200)
+    straight(-40)
+    baystatus = frombay(baystatus, {"type" : "water"}, "back")
+    lift(ud="downhalf")
+    grab(oc="open")
+    straight(60)
+    lift(ud="downhalf")
+    grab(oc="close")
+    # add recapture here later
+    gurn(-90, fb="forward", tp="pivot", speed=200)
+    robot.stop() # remove after next sequence is added
+    
 
 print(baystatus, markingBlockColor)
 print(time.time() - starttime)
