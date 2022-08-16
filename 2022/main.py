@@ -239,9 +239,9 @@ def grab(oc='open'):
   if oc == 'open':
     GrabMotor.stop()
     time.sleep(0.1)
-    GrabMotor.run_angle(100, 50)
+    GrabMotor.run_angle(400, 200)
   elif oc == 'close':
-    GrabMotor.run(-200)
+    GrabMotor.run(-400)
     time.sleep(0.6)
 
 def lift(ud='up'):
@@ -380,7 +380,6 @@ starttime = time.time()
 baystatus = []
 
 # start to pickup water to red box
-'''
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
@@ -399,7 +398,7 @@ baystatus.append({"type": "water"})
 baystatus.append({"type": "water"})
 gurn(67, aggresion=90, tp='circle', speed=200)
 sweep(sensor=LeftColor, direction="right")
-lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160, kp=0.4)
 straight(30)
 gurn(90, fb="forward", tp='pivot', speed=200)
 lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=100)
@@ -408,7 +407,6 @@ gurn(-45, fb="forward", tp='pivot', speed=200)
 gurn(45, fb="backward", tp='pivot', speed=200)
 straight(-75)
 robot.stop()
-'''
 
 # red box
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
@@ -425,9 +423,24 @@ if color == None:
     straight(-20)
     gurn(90, fb="backward", tp="pivot", speed=200)
     grab(oc="open")
-    straight(-135)
+    straight(-125)
     grab(oc="close")
+    straight(20)
     lift(ud="up")
+    gurn(80, fb="backward", tp="pivot", speed=200)
+    straight(-120)
+    lift(ud="downhalf")
+    grab(oc="open")
+    straight(70)
+    lift(ud="downhalf")
+    grab(oc="close")
+    straight(120)
+    grab(oc="open")
+    straight(-70)
+    grab(oc="close")
+    straight(70)
+
+
   else: # water
     pass
 else:
@@ -468,8 +481,8 @@ else:
     gurn(90, fb="forward", tp="pivot", speed=200)
 
 # red box to green box
-# sweep(sensor=RightColor, direction="left")
-# lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
+sweep(sensor=RightColor, direction="left")
+lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
 
 
 print(time.time() - starttime)
