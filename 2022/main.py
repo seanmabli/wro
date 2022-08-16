@@ -65,7 +65,6 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', speed=160, kp=
   derivative = 0
 
   robot.reset()
-  lastgyro = Gyro.angle()
   while abs(robot.distance()) < distance:
     if sideofsensor == 'in':
       error = target - sensor.reflection()
@@ -77,11 +76,8 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', speed=160, kp=
     lasterror = error
 
     robot.drive(speed, turn)
-    gyrodev.append(abs(Gyro.angle() - lastgyro))
-    lastgyro = Gyro.angle()
 
-  return sum(gyrodev[100 : -100]) / (len(gyrodev) - 200)
-  # return sum(gyrodev) / len(gyrodev)
+  robot.stop()
 
 def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, kp=0.25, ki=0, kd=0.5, speed=160, threshold='x'): # wait distance is the # of mm after a black it waits until continue detecting blacks
   if sensor not in [RightColor, LeftColor]:
@@ -100,7 +96,6 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
     sideofsensor = 'in' if sideofsensor == 'out' else 'out'
 
   target = (9 + 74) / 2 # Black = 9, White = 74
-  gyrodev = []
   error = 0
   lasterror = 0
   integral = 0
@@ -108,7 +103,6 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
   count = 0
 
   robot.reset()
-  lastgyro = Gyro.angle()
   lastdistance = abs(robot.distance())
   while count < blacks:
     if (LeftColor.reflection() + RightColor.reflection()) / 2 < threshold and lastdistance + waitdistance < abs(robot.distance()):
@@ -125,8 +119,6 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
     lasterror = error
 
     robot.drive(speed, turn)
-    gyrodev.append(abs(Gyro.angle() - lastgyro))
-    lastgyro = Gyro.angle()
 
   robot.stop()
   
@@ -377,6 +369,7 @@ starttime = time.time()
 baystatus = []
 
 # start to pickup water to red box
+'''
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
@@ -403,9 +396,12 @@ gurn(-45, fb="forward", tp='pivot', speed=200)
 gurn(45, fb="backward", tp='pivot', speed=200)
 straight(-75)
 robot.stop()
+'''
 
 # red box
+'''
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
+print("red box:", markingBlockColor)
 straight(20)
 gurn(-90, fb="backward", tp="pivot", speed=200)
 straight(315)
@@ -489,21 +485,23 @@ else:
     grab(oc="close")
     straight(40)
     gurn(90, fb="forward", tp="pivot", speed=200)
+'''
+
+baystatus.append({"type" : "water"})
+baystatus.append({"type" : "water"})
 
 # red box to green box
 sweep(sensor=RightColor, direction="left")
 lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
-straight(30)
-gurn(-90, fb="forward", tp="pivot", speed=200)
-straight(-100)
-gurn(98, fb="backward", tp="pivot", speed=200)
-straight(-25)
+lfpidDistance(distance=90, sensor=RightColor, sideofsensor='in', speed=160)
+gurn(-90, fb="forward", tp="pivot", speed=150)
+straight(20)
 
 # green box
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
-straight(10)
-gurn(-90, fb="backward", tp="pivot", speed=200)
-straight(240)
+print("green box:", markingBlockColor)
+straight(-200)
+sTurn(rl="left", fb="forward", turn=45, tp='pivot', drive=80, turnSpeed=150)
 RightMotor.run_angle(-150, 30)
 color = colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')
 if color != None:
@@ -511,7 +509,7 @@ if color != None:
 RightMotor.run_angle(-150, -30)
 if color == None:
   if markingBlockColor == Color.GREEN: # ball
-    gurn(90, fb="backward", tp="pivot", speed=200)
+    gurn(95, fb="backward", tp="pivot", speed=200)
     grab(oc="open")
     straight(-100)
     grab(oc="close")
@@ -529,6 +527,7 @@ if color == None:
     gurn(-75, fb="forward", tp="pivot", speed=200)
     straight(80)
   else: # water
+    gurn(-10, fb="forward", tp="pivot", speed=200)
     sTurn(rl="left", fb="backward", turn=60, tp='pivot', drive=75, turnSpeed=200)
     baystatus = frombay(baystatus, {"type" : "water"}, "back")
     straight(-15)
@@ -542,7 +541,7 @@ if color == None:
     gurn(-90, fb="forward", tp="pivot", speed=200)
 else:
   straight(30)
-  gurn(-38, fb="forward", tp="pivot", speed=200)
+  gurn(-45, fb="forward", tp="pivot", speed=200)
   grab(oc="open")
   straight(-150)
   if markingBlockColor == Color.GREEN: # ball
@@ -575,7 +574,5 @@ else:
     # add recapture here later
     gurn(-90, fb="forward", tp="pivot", speed=200)
     robot.stop() # remove after next sequence is added
-    
 
-print(baystatus, markingBlockColor)
 print(time.time() - starttime)
