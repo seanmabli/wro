@@ -57,6 +57,9 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', speed=160, kp=
   if sideofsensor not in ['in', 'out']:
     raise Exception('sideofsensor must be "in" or "out"')
   
+  if sensor == LeftColor:
+    sideofsensor = 'in' if sideofsensor == 'out' else 'out'
+
   target = (9 + 74) / 2 # Black = 9, White = 74
   gyrodev = []
   error = 0
@@ -149,7 +152,7 @@ def gurn(turn, aggresion=30, tp='tank', fb='forward', speed=100): # gurn = gyro 
       robot.drive(speed, aggresion)
 
   while abs(startangle - robot.angle()) < abs(turn):
-    pass
+    print(abs(startangle - robot.angle()), abs(turn))
 
   if tp == 'tank' or tp == 'circle':
     robot.stop()
@@ -157,33 +160,20 @@ def gurn(turn, aggresion=30, tp='tank', fb='forward', speed=100): # gurn = gyro 
     LeftMotor.hold()
     RightMotor.hold()
 
+  print("A:", abs(startangle - Gyro.angle()), robot.angle())
+
 def fraudulo(dividend, divisor): # dividend / divisor
   signa = 1 if dividend > 0 else -1
   signb = 1 if divisor > 0 else -1
   dividend, divisor = abs(dividend), abs(divisor)
-  return signa * signb * (dividend - divisor * (dividend // divisor)) / divisor
+  return signa * signb * (dividend % divisor)
 
-def orient(speed=30):
-  print(Gyro.angle(), startangle)
-
-  '''
-  if Gyro.angle() < startangle:
-    if Gyro.angle() % 360 > 180:
-      robot.drive(0, -speed)
-    elif Gyro.angle() % 360  180:
-    robot.drive(0, speed)
-
-  '''
-  if Gyro.angle() < 0:
-    while fraudulo(Gyro.angle(), 360) < 0:
-      robot.drive(0, -speed)
-      print(Gyro.angle())
-  else:
-    while mod(Gyro.angle(), 360) > 0:
-      robot.drive(0, speed)
-      print(Gyro.angle())
-
-  robot.stop()
+def orient(angle, fb, tp, speed=30):
+  if fb not in ['forward', 'backward']:
+    raise Exception('fb must be "forward" or "backward"')
+  if tp not in ['tank', 'pivot', 'circle']:
+    raise Exception('tp must be "tank" or "pivot" or "circle"')
+  gurn(fraudulo(angle, 360) - fraudulo(Gyro.angle(), 360), speed=speed, tp=tp, fb=fb)
 
 def sTurn(rl, fb, turn, tp='pivot', drive=0, turnSpeed=100): # rl = right-left, fb = forward-backward, turn = turn degrees(posotive), drive = drive between turns(positive)
   if rl not in ['right', 'left']:
@@ -196,10 +186,12 @@ def sTurn(rl, fb, turn, tp='pivot', drive=0, turnSpeed=100): # rl = right-left, 
   if fb == 'backward':
     drive *= -1
 
+  startangle = robot.angle()
+
   gurn(turn, tp=tp, fb=fb, speed=turnSpeed)
   if drive != 0:
     straight(drive)
-  gurn(-turn, tp=tp, fb=fb, speed=turnSpeed)
+  gurn(robot.angle() - startangle, tp=tp, fb=fb, speed=turnSpeed)
 
 def straight(distance):
   robot.straight(distance)
@@ -317,11 +309,13 @@ grabtowater = 63
 grabtolaundry = 47
 grabtoback = 248
 
-def frombay(baystatus, object, position):
+def frombay(baystatus, object, position, liftHeight="full"):
   if object["type"] not in ["water", "laundry"]:
     raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
     raise Exception('position must be "front" or "back"')
+  if liftHeight not in ["full", "half"]:
+    raise Exception('lift must be "full" or "half"')
   
   dis = 0
   for i, item in enumerate(reversed(baystatus)):
@@ -350,7 +344,10 @@ def frombay(baystatus, object, position):
   grab(oc='open')
   straight(dis)
   grab(oc='close')
-  lift(ud='up')
+  if liftHeight == "full":
+    lift(ud='up')
+  else:
+    lift(ud='uphalf')
   straight(-dis - 35)
 
   baystatus.remove(object)
@@ -489,13 +486,16 @@ def redandbluebox(baystatus):
 baystatus = redandbluebox(baystatus)
 
 # red box to green box
+'''
 sweep(sensor=RightColor, direction="left")
 lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
 lfpidDistance(distance=90, sensor=RightColor, sideofsensor='in', speed=160)
 gurn(-90, fb="forward", tp="pivot", speed=150)
 straight(20)
+'''
 
 # green box
+'''
 markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
 print("green box:", markingBlockColor)
 straight(-200)
@@ -539,23 +539,23 @@ if color == None:
     gurn(-90, fb="forward", tp="pivot", speed=200)
 else:
   straight(30)
-  gurn(-45, fb="forward", tp="pivot", speed=200)
+  gurn(-43, fb="forward", tp="pivot", speed=200)
   grab(oc="open")
   straight(-150)
   if markingBlockColor == Color.GREEN: # ball
     gurn(48, fb="backward", tp="pivot", speed=200)
-    straight(-45)
+    straight(-60)
     grab(oc="close")
     straight(20)
     lift(ud="up")
     gurn(-65, fb="backward", tp="pivot", speed=200)
-    straight(-120)
+    straight(-140)
     lift(ud="downhalf")
     grab(oc="open")
     straight(60)
     lift(ud="downhalf")
     grab(oc="close")
-    straight(50)
+    straight(70)
     gurn(-70, fb="forward", tp="pivot", speed=200)
     straight(60)
   elif markingBlockColor == Color.WHITE: # water
@@ -571,8 +571,10 @@ else:
     grab(oc="close")
     # add recapture here later
     gurn(-90, fb="forward", tp="pivot", speed=200)
+'''
 
 # green box to blue box
+'''
 sweep(sensor=RightColor, direction="left")
 lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
 gurn(90, fb="forward", tp="pivot", speed=200)
@@ -580,15 +582,68 @@ lfpidBlack(sensor=RightColor, sideofsensor='out', blacks=1, speed=160)
 lfpidDistance(distance=200, sensor=RightColor, sideofsensor='out', speed=160)
 straight(400)
 sTurn(rl="right", fb="forward", turn=20, tp='pivot', turnSpeed=150)
-sweep(sensor=RightColor, direction="left")
-lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=2, speed=160)
+sweep(sensor=LeftColor, direction="right")
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=100)
 straight(-20)
 gurn(-45, fb="forward", tp='pivot', speed=200)
-gurn(45, fb="backward", tp='pivot', speed=200)
+gurn(48, fb="backward", tp='pivot', speed=200)
 straight(-75)
 robot.stop()
+'''
 
 # blue box
-baystatus = redandbluebox(baystatus)
+# baystatus = redandbluebox(baystatus)
+
+# blue box to laundry dropoff
+'''
+sweep(sensor=RightColor, direction="left")
+lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, speed=160)
+gurn(-90, fb="forward", tp="pivot", speed=200)
+lfpidBlack(sensor=LeftColor, sideofsensor='out', blacks=1, speed=160)
+lfpidDistance(distance=200, sensor=LeftColor, sideofsensor='out', speed=160)
+straight(230)
+gurn(-90, fb="forward", tp="pivot", speed=200)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160)
+'''
+
+'''
+baystatus.append({"type" : "laundry", "color" : Color.RED})
+baystatus.append({"type" : "laundry", "color" : Color.YELLOW})
+baystatus.append({"type" : "laundry", "color" : Color.BLACK})
+
+# laundry dropoff
+gurn(-90, fb="forward", tp="tank", speed=100)
+sTurn(rl="left", fb="backward", turn=35, tp='pivot', drive=70, turnSpeed=100)
+straight(140)
+laundrybays = []
+RightMotor.run_angle(-150, 30)
+laundrybays.append(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW],direction='in'))
+RightMotor.run_angle(-150, -30)
+straight(100)
+RightMotor.run_angle(-150, 30)
+laundrybays.append(colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in'))
+RightMotor.run_angle(-150, -30)
+possible = [Color.RED, Color.YELLOW, Color.BLACK]
+possible.remove(laundrybays[0])
+possible.remove(laundrybays[1])
+laundrybays.append(possible[0])
+straight(-145)
+gurn(-45, fb="forward", tp="pivot", speed=200)
+straight(20)
+gurn(-57, fb="forward", tp="pivot", speed=200)
+baystatus = frombay(baystatus, {"type" : "laundry", "color" : laundrybays[2]}, "front", liftHeight="half")
+straight(-40)
+grab(oc="open")
+straight(30)
+lift(ud="downhalf")
+grab(oc="close")
+straight(40)
+gurn(-15, fb="backward", tp="tank", speed=100)
+baystatus = frombay(baystatus, {"type" : "laundry", "color" : laundrybays[1]}, "front", liftHeight="half")
+straight(-40)
+grab(oc="open")
+gurn(-90, fb="forward", tp="tank", speed=200)
+'''
 
 print(time.time() - starttime)
