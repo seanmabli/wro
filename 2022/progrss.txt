@@ -1,0 +1,29 @@
+red box:
+  - laundry, water
+  - laundry, ball
+    - turned too little after scanning for laundry (1) (fixed)
+    - works (1)
+  - no laundry, water
+    - drops off on left side of table (might be because of pickup water to red box program) (2) (fixed)
+    - works (3)
+  - no laundry, ball
+
+green box:
+  - laundry, water
+  - laundry, ball
+    - works (2)
+  - no laundry, water
+    - works (2)
+  - no laundry, ball
+
+green box to blue box:
+  - sTurn failed to sweep (1)
+
+blue box:
+  - laundry, water
+    - drops off on front-left corner of table (might be because incoming program) (1) (fixed)
+    - works (2)
+  - laundry, ball
+    - off on left side of ball (1)
+  - no laundry, water
+  - no laundry, ball+

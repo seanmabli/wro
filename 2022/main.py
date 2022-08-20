@@ -178,17 +178,21 @@ def sTurn(rl, fb, turn, tp='pivot', drive=0, turnSpeed=100): # rl = right-left, 
   if fb not in ['forward', 'backward']:
     raise Exception('fb must be "forward" or "backward"')
   
+
   if rl == 'right':
     turn *= -1
   if fb == 'backward':
     drive *= -1
+    conificient = 1
+  else:
+    conificient = -1
 
   startangle = robot.angle()
 
   gurn(turn, tp=tp, fb=fb, speed=turnSpeed)
   if drive != 0:
     straight(drive)
-  gurn(robot.angle() - startangle, tp=tp, fb=fb, speed=turnSpeed)
+  gurn(conificient * (startangle - robot.angle()), tp=tp, fb=fb, speed=turnSpeed)
 
 def straight(distance):
   robot.straight(distance)
@@ -240,28 +244,40 @@ def colorScan(acceptable, direction):
   if FrontColor.color() in acceptable:
     return FrontColor.color()
   else:
-    Gyro.reset_angle(0)
+    startangle = robot.angle()
+    # file = open('a.txt', 'a')
+
     if direction == 'in':
       RightMotor.run(-150)
     elif direction == 'out':
       RightMotor.run(150)
 
-    while FrontColor.color() not in acceptable and abs(Gyro.angle()) < 40:
+    while FrontColor.color() not in acceptable and abs(startangle - robot.angle()) < 40:
       pass
+      # file.write(str(Gyro.angle()) + " " + str(robot.angle()) + '\n')
 
     robot.stop()
+
+    # file.write("stop\n")
 
     color = FrontColor.color()
 
     if direction == 'in':
       RightMotor.run(75)
-      while Gyro.angle() < 0:
+      while robot.angle() > startangle:
         pass
+        # file.write(str(Gyro.angle()) + " " + str(robot.angle()) + '\n')
     elif direction == 'out':
       RightMotor.run(-75)
-      while Gyro.angle() > 0:
+      while robot.angle() < startangle:
         pass
+        # file.write(str(Gyro.angle()) + " " + str(robot.angle()) + '\n')
+
     robot.stop()
+    # file.close()
+
+    print('colorScan gyro:', startangle, robot.angle())
+
     return color
 
 def LineSquaring(Num):
@@ -402,7 +418,7 @@ def redandbluebox(baystatus):
   if color == None:
     if markingBlockColor == Color.GREEN: # ball
       straight(-20)
-      gurn(90, fb="backward", tp="pivot", speed=200)
+      gurn(95, fb="backward", tp="pivot", speed=200)
       grab(oc="open")
       straight(-125)
       grab(oc="close")
@@ -428,7 +444,7 @@ def redandbluebox(baystatus):
       straight(100)
     else: # water
       straight(-20)
-      gurn(185, fb="backward", tp="pivot", speed=200)
+      gurn(195, fb="backward", tp="pivot", speed=200)
       baystatus = frombay(baystatus, {"type" : "water"}, "back")
       straight(-30)
       lift(ud="downhalf")
@@ -436,7 +452,7 @@ def redandbluebox(baystatus):
       straight(50)
       lift(ud="downhalf")
       grab(oc="close")
-      straight(40)
+      straight(25)
       gurn(90, fb="forward", tp="pivot", speed=200)
   else:
     straight(30)
@@ -583,8 +599,6 @@ robot.stop()
 
 # blue box
 baystatus = redandbluebox(baystatus)
-
-quit()
 
 # blue box to laundry dropoff
 sweep(sensor=RightColor, direction="left")
