@@ -295,8 +295,6 @@ def colorScan(acceptable, direction):
     robot.stop()
     # file.close()
 
-    print('colorScan gyro:', startangle, robot.angle())
-
     return color
 
 def LineSquaring(Num):
@@ -425,7 +423,7 @@ robot.stop()
 
 def redandbluebox(baystatus):
   markingBlockColor = colorScan(acceptable=[Color.GREEN, Color.WHITE], direction='in')
-  print("red box:", markingBlockColor)
+  print("red/blue box:", markingBlockColor)
   straight(20)
   gurn(-90, fb="backward", tp="pivot", speed=200)
   straight(315)
@@ -450,7 +448,7 @@ def redandbluebox(baystatus):
       straight(70)
       lift(ud="downhalf")
       grab(oc="close")
-      straight(70)
+      straight(60)
       backindis = 0
       for item in baystatus:
         backindis += water if item["type"] == "water" else laundry
@@ -463,7 +461,7 @@ def redandbluebox(baystatus):
       straight(100)
     else: # water
       straight(-20)
-      gurn(195, fb="backward", tp="pivot", speed=200)
+      gurn(190, fb="backward", tp="pivot", speed=200)
       baystatus = frombay(baystatus, {"type" : "water"}, "back")
       straight(-30)
       lift(ud="downhalf")
@@ -483,16 +481,16 @@ def redandbluebox(baystatus):
       gurn(47, fb="backward", tp="pivot", speed=200)
       straight(-70)
       grab(oc="close", percentage=1.25)
-      straight(20)
+      straight(40)
       lift(ud="up")
-      gurn(92, fb="backward", tp="pivot", speed=200)
-      straight(-80)
+      gurn(84, fb="backward", tp="pivot", speed=200)
+      straight(-90)
       lift(ud="downhalf")
       grab(oc="open")
       straight(60)
       lift(ud="downhalf")
       grab(oc="close")
-      straight(35)
+      straight(55)
       gurn(70, fb="forward", tp="pivot", speed=200)
       straight(100)
     elif markingBlockColor == Color.WHITE: # water
@@ -536,9 +534,9 @@ RightMotor.run_angle(-150, -30)
 if color == None:
   if markingBlockColor == Color.GREEN: # ball
     gurn(95, fb="backward", tp="pivot", speed=200)
-    grab(oc="open")
+    grab(oc="open", percentage=1.25)
     straight(-100)
-    grab(oc="close")
+    grab(oc="close", percentage=1.25)
     straight(40)
     lift(ud="up")
     gurn(-70, fb="backward", tp="pivot", speed=200)
@@ -548,10 +546,10 @@ if color == None:
     straight(70)
     lift(ud="downhalf")
     grab(oc="close")
-    straight(70)
+    straight(100)
     # add recapture here later
     gurn(-75, fb="forward", tp="pivot", speed=200)
-    straight(80)
+    straight(40)
   else: # water
     gurn(-5, fb="forward", tp="pivot", speed=200)
     sTurn(rl="left", fb="backward", turn=60, tp='pivot', drive=75, turnSpeed=200)
@@ -562,7 +560,7 @@ if color == None:
     straight(50)
     lift(ud="downhalf")
     grab(oc="close")
-    straight(20)
+    straight(35)
     # add recapture here later
     gurn(-90, fb="forward", tp="pivot", speed=200)
 else:
@@ -571,9 +569,10 @@ else:
   grab(oc="open")
   straight(-150)
   if markingBlockColor == Color.GREEN: # ball
+    grab(oc="open", percentage=0.25)
     gurn(48, fb="backward", tp="pivot", speed=200)
     straight(-40)
-    grab(oc="close")
+    grab(oc="close", percentage=1.255)
     straight(20)
     lift(ud="up")
     gurn(-65, fb="backward", tp="pivot", speed=200)
@@ -597,6 +596,7 @@ else:
     straight(60)
     lift(ud="downhalf")
     grab(oc="close")
+    straight(10)
     # add recapture here later
     gurn(-90, fb="forward", tp="pivot", speed=200)
 
@@ -607,9 +607,8 @@ gurn(90, fb="forward", tp="pivot", speed=200)
 lfpidBlack(sensor=RightColor, sideofsensor='out', blacks=1, speed=160)
 lfpidDistance(distance=200, sensor=RightColor, sideofsensor='out', speed=160)
 straight(400)
-sTurn(rl="right", fb="forward", turn=20, tp='pivot', turnSpeed=150)
 sweep(sensor=LeftColor, direction="right")
-lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160, kp=0.7)
 lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=100)
 straight(-20)
 gurn(-45, fb="forward", tp='pivot', speed=200)
@@ -630,70 +629,14 @@ straight(230)
 gurn(-90, fb="forward", tp="pivot", speed=200)    
 lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, speed=160)
 
-# old laundry dropoff
-'''
-baystatus.append({"type" : "laundry", "color" : Color.RED})
-baystatus.append({"type" : "laundry", "color" : Color.YELLOW})
-baystatus.append({"type" : "laundry", "color" : Color.BLACK})
-
-laundrybays = []
-
-gurn(-115, fb="forward", tp="tank", speed=100)
-straight(-170)
-sweep(sensor=LeftColor, direction="left")
-lfpidDistance(distance=130, sensor=LeftColor, sideofsensor='out', speed=100)
-laundrybays.append(colorScan(acceptable=[Color.RED, Color.YELLOW, Color.BLACK], direction='in'))
-lfpidDistance(distance=110, sensor=LeftColor, sideofsensor='out', speed=100)
-laundrybays.append(colorScan(acceptable=[Color.RED, Color.YELLOW, Color.BLACK], direction='in'))
-possible = [Color.RED, Color.YELLOW, Color.BLACK]
-possible.remove(laundrybays[0])
-possible.remove(laundrybays[1])
-laundrybays.append(possible[0])
-print(laundrybays)
-
-gurn(-90, fb="backward", tp="pivot", speed=200)
-gurn(165, fb="forward", tp="tank", speed=80)
-
-baystatus = frombay(baystatus, {"type" : "laundry", "color" : laundrybays[2]}, "back", liftheight="half")
-straight(-20)
-grab(oc="open")
-straight(50)
-lift(ud="downhalf")
-grab(oc="close")
-
-gurn(20, fb="forward", tp="pivot", speed=200)
-startdistance = robot.distance()
-robot.drive(100, 0)
-while abs(robot.distance() - startdistance) < 50:
-  pass
-robot.stop()
-baystatus = frombay(baystatus, {"type" : "laundry", "color" : laundrybays[1]}, "front", liftheight="half")
-straight(-70)
-grab(oc="open")
-straight(50)
-lift(ud="downhalf")
-grab(oc="close")
-
-gurn(-30, fb="backward", tp="pivot", speed=200)
-startdistance = robot.distance()
-robot.drive(100, 0)
-while abs(robot.distance() - startdistance) < 20:
-  pass
-robot.stop()
-baystatus = frombay(baystatus, {"type" : "laundry", "color" : laundrybays[1]}, "front", liftheight="half")
-straight(-30)
-grab(oc="open")
-'''
-
 # new laundry dropoff
-
 def getfirstlaundrycolor(baystatus):
   for i in reversed(baystatus):
     if i["type"] == "laundry":
       return True, i["color"]
   return False, None
 
-gurn(155, fb="forward", tp="tank", speed=80)
+gurn(160, fb="forward", tp="tank", speed=80)
 
 first = getfirstlaundrycolor(baystatus)
 
@@ -707,27 +650,14 @@ if second[0]:
   lift(ud="downhalf")
   grab(oc="close")
 
-  gurn(30, fb="forward", tp="pivot", speed=200)
+  gurn(25, fb="forward", tp="pivot", speed=200)
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half")
-  straight(-20)
+  straight(-40)
   grab(oc="open")
-  straight(50)
-
-  third = getfirstlaundrycolor(baystatus)
-  if third[0]:
-    lift(ud="downhalf")
-    grab(oc="close")
-
-    gurn(-30, fb="backward", tp="pivot", speed=200)
-    baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half")
-    straight(-20)
-    grab(oc="open")
-    straight(50)
-  else:
-    straight(240)
-    gurn(45, fb="forward", tp="tank", speed=100)
-    straight(-20)
-    lift(ud="up", percentage=1.2)
+  straight(290)
+  gurn(45, fb="forward", tp="tank", speed=100)
+  straight(-5)
+  lift(ud="up", percentage=1.2)
 
 else:
   gurn(30, fb="forward", tp="pivot", speed=200)
