@@ -197,7 +197,7 @@ def straight(distance):
   robot.straight(distance)
   robot.stop()
 
-def sweep(sensor, direction, speed=75):
+def sweep(sensor, direction, speed=50):
   if sensor not in [RightColor, LeftColor]:
     raise Exception('sensor must be RightColor or LeftColor')
   if direction not in ['right', 'left']:
@@ -225,14 +225,14 @@ def sweep(sensor, direction, speed=75):
     reflection.append(i[0])
  
   maxindex = reflection.index(max(reflection))
-  info, reflections = info[maxindex:], reflection[maxindex:]
+  info, reflection = info[maxindex:], reflection[maxindex:]
 
   closest = float('inf')
   closestindex = 0
-  for i in reflections:
+  for i in reflection:
     if abs(i - target) < closest:
       closest = abs(i - target)
-      closestindex = reflections.index(i)
+      closestindex = reflection.index(i)
 
   targetangle = info[closestindex][1]
 
@@ -633,9 +633,9 @@ def getfirstlaundrycolor(baystatus):
 
 gurn(160, fb="forward", tp="tank", speed=80)
 
-if time.time() - starttime < 107:
+print(time.time() - starttime)
+if time.time() - starttime < 107.25: # ~12.75 seconds
   first = getfirstlaundrycolor(baystatus)
-
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
   straight(-20)
   grab(oc="open")
@@ -659,16 +659,16 @@ if time.time() - starttime < 107:
     gurn(45, fb="forward", tp="tank", speed=100)
     straight(-20)
     lift(ud="up", percentage=1.2)
-else:
+else: # ~8 seconds
   gurn(30, fb="forward", tp="tank", speed=80)
   grab(oc="open")
-  straight(200)
+  straight(130)
   grab(oc="close")
-  straight(-250)
-  straight(240)
+  straight(-150)
+  straight(280)
   gurn(45, fb="forward", tp="tank", speed=100)
-  straight(-5)
+  straight(-25)
   lift(ud="upfull")
-  grab(oc="open")
+  grab(oc="open", percentage=1.5)
 
 print(time.time() - starttime)
