@@ -634,7 +634,7 @@ def getfirstlaundrycolor(baystatus):
 gurn(160, fb="forward", tp="tank", speed=80)
 
 print(time.time() - starttime)
-if time.time() - starttime < 107.25: # ~12.75 seconds
+if time.time() - starttime < 108.5: # ~12.75 seconds
   first = getfirstlaundrycolor(baystatus)
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
   straight(-20)
@@ -667,7 +667,7 @@ else: # ~8 seconds
   straight(-150)
   straight(280)
   gurn(45, fb="forward", tp="tank", speed=100)
-  straight(-25)
+  straight(-30)
   lift(ud="upfull")
   grab(oc="open", percentage=1.5)
 
