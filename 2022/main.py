@@ -428,28 +428,20 @@ def redandbluebox(baystatus):
   if color == None:
     if markingBlockColor == Color.GREEN: # ball
       straight(-20)
-      gurn(90, fb="backward", tp="pivot", speed=200)
+      gurn(95, fb="backward", tp="pivot", speed=200)
       grab(oc="open", percentage=1.25)
       straight(-125)
       grab(oc="close", percentage=1.25)
       straight(40)
       lift(ud="up")
       gurn(75, fb="backward", tp="pivot", speed=200)
-      straight(-120)
+      straight(-140)
       lift(ud="downhalf")
       grab(oc="open")
       straight(70)
       lift(ud="downhalf")
       grab(oc="close")
-      straight(60)
-      backindis = 0
-      for item in baystatus:
-        backindis += water if item["type"] == "water" else laundry
-      if (grabtoback - backindis) < 80:
-        grab(oc="open")
-        straight(-70)
-        grab(oc="close")
-        straight(70)
+      straight(80)
       gurn(75, fb="forward", tp="pivot", speed=200)
       straight(100)
     else: # water
@@ -669,6 +661,6 @@ else: # ~8 seconds
   gurn(45, fb="forward", tp="tank", speed=100)
   straight(-30)
   lift(ud="upfull")
-  grab(oc="open", percentage=1.5)
+  grab(oc="open", percentage=1.2)
 
 print(time.time() - starttime)
