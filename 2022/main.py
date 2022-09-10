@@ -290,6 +290,25 @@ def colorScan(acceptable, direction):
     robot.stop()
     return color
 
+def newColorScan(acceptable, direction):
+  if FrontColor.color() in acceptable:
+    return FrontColor.color()
+  else:
+    startangle = robot.angle()
+
+    if direction == 'in':
+      RightMotor.run(-150)
+    elif direction == 'out':
+      RightMotor.run(150)
+
+    while FrontColor.color() not in acceptable and abs(startangle - robot.angle()) < 40:
+      pass
+
+    robot.stop()
+    color = FrontColor.color()
+
+    return color
+
 def LineSquaring(Num):
   THRESHOLD = (9 + 70) / 2
   # Move Forward To White
@@ -421,29 +440,27 @@ def redandbluebox(baystatus):
   gurn(-90, fb="backward", tp="pivot", speed=200)
   straight(315)
   RightMotor.run_angle(-150, 30)
-  color = colorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')
+  color = newColorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')
   if color != None:
     baystatus.append({"type" : "laundry", "color" : color})
   RightMotor.run_angle(-150, -30)
   if color == None:
     if markingBlockColor == Color.GREEN: # ball
-      straight(-20)
-      gurn(95, fb="backward", tp="pivot", speed=200)
+      gurn(50, fb="backward", tp="pivot", speed=200)
       grab(oc="open", percentage=1.25)
       straight(-105)
       grab(oc="close", percentage=1.25)
       straight(40)
       lift(ud="up")
       gurn(70, fb="backward", tp="pivot", speed=200)
-      straight(-140)
+      straight(-120)
       lift(ud="downhalf")
       grab(oc="open")
       straight(70)
       lift(ud="downhalf")
       grab(oc="close")
-      straight(80)
+      straight(90)
       gurn(75, fb="forward", tp="pivot", speed=200)
-      straight(100)
     else: # water
       straight(-20)
       gurn(190, fb="backward", tp="pivot", speed=200)

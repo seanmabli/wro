@@ -1,0 +1,21 @@
+9/9/2022:
+
+TOTAL TIME SHAVED FROM CA: 3 seconds from double scan to single scan
+
+- red water with laundry 
+Number of Runs: 5
+    Overturn after red sweep: 1
+    Miss Scan Marking Block 2: 1
+    successfully completed: 3
+
+- red no laundry ball, green laundry water, blue laundry water
+Number of runs: 5
+    blue water fell over: 2
+    green water fell over: 3
+    successfully completed: 2
+
+
+
+    Possible Additions:
+    - time individual laundry runs for variations which take different amounts of time
+    - no spinning at the end, instead one turn with no line following *****
