@@ -1,6 +1,6 @@
 9/9/2022:
 
-TOTAL TIME SHAVED FROM CA: 3 seconds from double scan to single scan
+TOTAL TIME SHAVED FROM CA: 3 seconds from double scan to single scan (real = 2.25)
 
 - red water with laundry 
 Number of Runs: 5
@@ -9,13 +9,22 @@ Number of Runs: 5
     successfully completed: 3
 
 - red no laundry ball, green laundry water, blue laundry water
-Number of runs: 5
+Number of runs: 6
+    overturn red sweep: 1
     blue water fell over: 2
     green water fell over: 3
     successfully completed: 2
 
+- red no laundry ball, green laundry ball, blue laundry water
+number of runs: 6
+   overturn red sweep: 1
+   laundry doesn't fit into bay and gets stuck; 1
+   Grabs ball too early: 1
+   successfully completed: 
+   misses red ball drop: 1
 
+- successfully dropped off and picked up red and green balls: 2/3 - laundry gets stuck in the front: 1/2
 
     Possible Additions:
     - time individual laundry runs for variations which take different amounts of time
-    - no spinning at the end, instead one turn with no line following *****
+    - no spinning at the end, instead one turn with no line following ***** - on hold

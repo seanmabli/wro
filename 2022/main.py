@@ -272,11 +272,11 @@ def colorScan(acceptable, direction):
     elif direction == 'out':
       RightMotor.run(150)
 
-    while FrontColor.color() not in acceptable and abs(startangle - robot.angle()) < 40:
-      pass
+    color = None
+    while color not in acceptable and abs(startangle - robot.angle()) < 40:
+      color = FrontColor.color()
 
     robot.stop()
-    color = FrontColor.color()
 
     if direction == 'in':
       RightMotor.run(75)
@@ -301,12 +301,11 @@ def newColorScan(acceptable, direction):
     elif direction == 'out':
       RightMotor.run(150)
 
-    while FrontColor.color() not in acceptable and abs(startangle - robot.angle()) < 40:
-      pass
+    color = None
+    while color not in acceptable and abs(startangle - robot.angle()) < 40:
+      color = FrontColor.color()
 
     robot.stop()
-    color = FrontColor.color()
-
     return color
 
 def LineSquaring(Num):
@@ -443,16 +442,16 @@ def redandbluebox(baystatus):
   color = newColorScan(acceptable=[Color.BLACK, Color.RED, Color.YELLOW], direction='in')
   if color != None:
     baystatus.append({"type" : "laundry", "color" : color})
-  RightMotor.run_angle(-150, -30)
+    RightMotor.run_angle(-150, -30)
   if color == None:
     if markingBlockColor == Color.GREEN: # ball
-      gurn(50, fb="backward", tp="pivot", speed=200)
+      gurn(40, fb="backward", tp="pivot", speed=200)
       grab(oc="open", percentage=1.25)
-      straight(-105)
+      straight(-115)
       grab(oc="close", percentage=1.25)
-      straight(40)
+      straight(50)
       lift(ud="up")
-      gurn(70, fb="backward", tp="pivot", speed=200)
+      gurn(75, fb="backward", tp="pivot", speed=200)
       straight(-120)
       lift(ud="downhalf")
       grab(oc="open")
@@ -460,7 +459,8 @@ def redandbluebox(baystatus):
       lift(ud="downhalf")
       grab(oc="close")
       straight(90)
-      gurn(75, fb="forward", tp="pivot", speed=200)
+      gurn(60, fb="forward", tp="pivot", speed=200)
+      straight(20)
     else: # water
       straight(-20)
       gurn(190, fb="backward", tp="pivot", speed=200)
@@ -509,7 +509,7 @@ def redandbluebox(baystatus):
       lift(ud="down", percentage=0.4)
       grab(oc="close")
       straight(25)
-      gurn(90, fb="forward", tp="pivot", speed=200)
+      gurn(80, fb="forward", tp="pivot", speed=200)
   
   return baystatus
 
