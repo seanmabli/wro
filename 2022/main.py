@@ -6,6 +6,7 @@ from pybricks.parameters import Port, Color, Button, Direction
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile
 import time
+import _thread
 
 GrabMotor = Motor(Port.A)
 RightMotor = Motor(Port.B, Direction.COUNTERCLOCKWISE)
@@ -247,6 +248,9 @@ def grab(oc='open', percentage=1):
     GrabMotor.run(-400)
     time.sleep(0.6 * percentage)
 
+def grabasync(oc='open', percentage=1):
+  _thread.start_new_thread(grab, (oc, percentage))
+
 def lift(ud='up', percentage=1):
   if ud == 'up':
     LiftMotor.run_angle(400, -320 * percentage)
@@ -260,6 +264,9 @@ def lift(ud='up', percentage=1):
     LiftMotor.run_angle(400, 160)
   elif ud == "downfull":
     LiftMotor.run_angle(400, 550)
+
+def liftasync(ud='up', percentage=1):
+  _thread.start_new_thread(lift, (ud, percentage))
 
 def colorScan(acceptable, direction):
   if FrontColor.color() in acceptable:
@@ -405,12 +412,13 @@ starttime = time.time()
 baystatus = []
 
 # start to pickup water to red box
+liftasync(ud="downfull")
+grabasync(oc="open", percentage=0.3)
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-58, tp='pivot', speed=200)
 straight(-70)
-lift(ud="downfull")
-grab(oc='close')
+grab(oc='close', percentage=1.3)
 grab(oc='open')
 straight(-100)
 grab(oc='close')
