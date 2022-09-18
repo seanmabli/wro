@@ -15,6 +15,10 @@ Number of runs: 6
     green water fell over: 3
     successfully completed: 2
 
+    
+    miss red ball drop: 1
+    Miss pick up waters: 3
+
 - red no laundry ball, green laundry ball, blue laundry water
 number of runs: 6
    overturn red sweep: 1
