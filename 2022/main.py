@@ -72,10 +72,13 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', startncap=[], 
 
   if startncap == []:
     speed = [160]
+    one = True
   elif type(startncap) == int:
     speed = [startncap]
+    one = True
   else:
     speed = list(range(startncap[0], startncap[1]))
+    one = False
 
   target = (9 + 74) / 2 # Black = 9, White = 74
   gyrodev = []
@@ -101,7 +104,10 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', startncap=[], 
     turn = kp * error + ki * integral + kd * derivative
     lasterror = error
 
-    robot.drive(speed[num], turn)
+    if one:
+      robot.drive(speed[0], turn)
+    else:
+      robot.drive(speed[num], turn)
 
   robot.stop()
 
@@ -393,13 +399,15 @@ grabtowater = 63
 grabtolaundry = 47
 grabtoback = 248
 
-def frombay(baystatus, object, position, liftheight="full"):
+def frombay(baystatus, object, position, liftheight="full", grabstatus="close"):
   if object["type"] not in ["water", "laundry"]:
     raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
     raise Exception('position must be "front" or "back"')
   if liftheight not in ["full", "half"]:
     raise Exception('lift must be "full" or "half"')
+  if grabstatus not in ["close", "open"]:
+    raise Exception('grabstatus must be "close" or "open"')
   
   dis = 0
   for i, item in enumerate(reversed(baystatus)):
@@ -423,7 +431,8 @@ def frombay(baystatus, object, position, liftheight="full"):
     if object == item:
       break
   
-  grab(oc='open')
+  if grabstatus == "close":
+    grab(oc='open')
   straight(dis)
   grab(oc='close')
   if liftheight == "full":
@@ -466,7 +475,7 @@ baystatus.append({"type": "water"})
 baystatus.append({"type": "water"})
 gurn(67, aggresion=90, tp='circle', speed=200)
 sweep(sensor=LeftColor, direction="right")
-lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, startncap=[200, 100], estdistance=100, kp=0.4)
+lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, startncap=100, estdistance=100, kp=0.4)
 straight(35)
 gurn(90, fb="forward", tp='pivot', speed=200)
 lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1, startncap=100)
@@ -596,10 +605,10 @@ if color == None:
     gurn(-75, fb="forward", tp="pivot", speed=200)
     straight(40)
   else: # water
-    gurn(-5, fb="forward", tp="pivot", speed=200)
-    sTurn(rl="left", fb="backward", turn=60, tp='pivot', drive=75, turnSpeed=200)
+    gurn(10, fb="backward", tp="pivot", speed=200)
+    straight(-90)
+    gurn(-55, fb="backward", tp="pivot", speed=200)
     baystatus = frombay(baystatus, {"type" : "water"}, "back")
-    straight(-50)
     lift(ud="down", percentage=0.6)
     grab(oc="open")
     straight(50)
@@ -696,15 +705,28 @@ if time.time() - starttime < 109.5: # ~12.75 seconds
   second = getfirstlaundrycolor(baystatus)
   if second[0]:
     lift(ud="downhalf")
-    grab(oc="close")
     gurn(25, fb="forward", tp="pivot", speed=200)
-    baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half")
+    baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half", grabstatus="open")
     straight(-40)
     grab(oc="open")
-    liftasync(ud="up", percentage=1.2)
-    straight(280)
-    gurn(45, fb="forward", tp="tank", speed=100)
-    straight(10)
+    
+    third = getfirstlaundrycolor(baystatus)
+    if third[0]:
+      straight(50)
+      lift(ud="downhalf")
+      gurn(25, fb="forward", tp="pivot", speed=200)
+      straight(30)
+      baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
+      straight(-100)
+      grab(oc="open")
+      straight(40)
+      liftasync(ud="up", percentage=1.2)
+      gurn(-25, fb="forward", tp="pivot", speed=200)
+      straight(200)
+      gurn(45, fb="forward", tp="tank", speed=100)
+      straight(15)
+    else:
+      liftasync(ud="up", percentage=1.2)
   else:
     gurn(30, fb="forward", tp="pivot", speed=200)
     liftasync(ud="up", percentage=1.2)

@@ -32,3 +32,18 @@ number of runs: 6
     Possible Additions:
     - time individual laundry runs for variations which take different amounts of time
     - no spinning at the end, instead one turn with no line following ***** - on hold
+
+
+
+
+    9/25/2022 - 10 run test
+                                        1: successfull
+     red water, green ball, blue ball - 2: successfull
+     red water, green ball, blue ball - 3: stupid list error
+     red ball, green water, blue ball - 4: lost red laundry when green water drop
+     red ball, green water, blue ball - 5: missed red ball pick up
+     red ball, green water, blue ball - 6: successful
+     red ball, green water, blue ball - 7: successful
+     red ball, green water, blue ball - 8: successful
+     red ball, green water, blue ball - 9: successful
+     red ball, green awter, blue ball - 10: successful
