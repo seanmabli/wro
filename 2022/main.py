@@ -503,7 +503,7 @@ def redandbluebox(baystatus):
       straight(-115)
       grab(oc="close", percentage=1.25)
       straight(50)
-      lift(ud="up")
+      liftasync(ud="up")
       gurn(75, fb="backward", tp="pivot", speed=200)
       straight(-120)
       lift(ud="downhalf")
@@ -536,7 +536,7 @@ def redandbluebox(baystatus):
       straight(-65)
       grab(oc="close", percentage=1.25)
       straight(40)
-      lift(ud="up")
+      liftasync(ud="up")
       gurn(84, fb="backward", tp="pivot", speed=200)
       straight(-90)
       lift(ud="downhalf")
@@ -544,7 +544,7 @@ def redandbluebox(baystatus):
       straight(60)
       grabasync(oc="close")
       lift(ud="downhalf")
-      straight(70)
+      straight(80)
       gurn(75, fb="forward", tp="pivot", speed=200)
       straight(60)
     elif markingBlockColor == Color.WHITE: # water
@@ -592,8 +592,8 @@ if color == None:
     straight(-90)
     grab(oc="close", percentage=1.25)
     straight(40)
-    lift(ud="up")
-    gurn(-70, fb="backward", tp="pivot", speed=200)
+    liftasync(ud="up")
+    gurn(-80, fb="backward", tp="pivot", speed=200)
     straight(-120)
     lift(ud="downhalf")
     grab(oc="open")
@@ -627,7 +627,7 @@ else:
     straight(-40)
     grab(oc="close", percentage=1.255)
     straight(20)
-    lift(ud="up")
+    liftasync(ud="up")
     gurn(-65, fb="backward", tp="pivot", speed=200)
     straight(-140)
     lift(ud="downhalf")
@@ -677,7 +677,26 @@ baystatus = redandbluebox(baystatus)
 # blue box to laundry dropoff
 sweep(sensor=RightColor, direction="left")
 lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1)
-gurn(-105, fb="forward", tp="pivot", speed=200)
+
+numoflaundry = 0
+for i in baystatus:
+  if i["type"] == "laundry":
+    numoflaundry += 1
+
+if numoflaundry < 3:
+  getyellow = True
+  baystatus.append({"type" : "laundry", "color" : "none"})
+  lfpidDistance(distance=150, sensor=RightColor, sideofsensor='in')
+  gurn(-180, fb="forward", tp="tank", speed=100)
+  grabasync(oc="open")
+  straight(-90)
+  grab(oc="close")
+  straight(100)
+  gurn(40, fb="forward", tp="pivot", speed=200)
+else:
+  getyellow = False
+  gurn(-105, fb="forward", tp="pivot", speed=200)
+
 sweep(sensor=LeftColor, direction="left")
 lfpidBlack(sensor=LeftColor, sideofsensor='out', blacks=1)
 lfpidDistance(distance=200, sensor=LeftColor, sideofsensor='out')
@@ -695,9 +714,13 @@ def getfirstlaundrycolor(baystatus):
 gurn(160, fb="forward", tp="tank", speed=80)
 
 print(time.time() - starttime)
-if time.time() - starttime < 109.5: # ~12.75 seconds
-  first = getfirstlaundrycolor(baystatus)
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
+if True: # ~12.75 seconds, (time.time() - starttime < 109.5)
+  if getyellow == False:
+    first = getfirstlaundrycolor(baystatus)
+    baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
+  else:
+    lift(ud='up', percentage=0.5)
+    straight(-40)
   straight(-20)
   grab(oc="open")
   straight(50)
@@ -727,6 +750,10 @@ if time.time() - starttime < 109.5: # ~12.75 seconds
       straight(15)
     else:
       liftasync(ud="up", percentage=1.2)
+      straight(280)
+      gurn(45, fb="forward", tp="tank", speed=100)
+      straight(10)
+      lift(ud="up", percentage=1.2)
   else:
     gurn(30, fb="forward", tp="pivot", speed=200)
     liftasync(ud="up", percentage=1.2)
