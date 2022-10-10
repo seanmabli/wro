@@ -628,7 +628,7 @@ else:
     grab(oc="close", percentage=1.255)
     straight(20)
     liftasync(ud="up")
-    gurn(-65, fb="backward", tp="pivot", speed=200)
+    gurn(-70, fb="backward", tp="pivot", speed=200)
     straight(-140)
     lift(ud="downhalf")
     grab(oc="open")
@@ -714,52 +714,128 @@ def getfirstlaundrycolor(baystatus):
 gurn(160, fb="forward", tp="tank", speed=80)
 
 print(time.time() - starttime)
-if True: # ~12.75 seconds, (time.time() - starttime < 109.5)
-  if getyellow == False:
-    first = getfirstlaundrycolor(baystatus)
-    baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
-  else:
-    lift(ud='up', percentage=0.5)
-    straight(-40)
+
+if getyellow:
+  # first
+  lift(ud='up', percentage=0.5)
+  straight(-40)
+  grab(oc="open")
+  liftasync(ud="downhalf")
+  straight(70)
+  grab(oc="close")
+
+  # second
+  gurn(25, fb="forward", tp="pivot", speed=200)
+  liftasync(ud="uphalf")
+  straight(-80)
+  grab(oc="open")
+      
+  # third
+  third = getfirstlaundrycolor(baystatus)
+  straight(40)
+  lift(ud="downhalf")
+  gurn(18, fb="forward", tp="pivot", speed=200)
+  baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
+  straight(-100)
+  grab(oc="open")
+  straight(40)
+  liftasync(ud="up", percentage=1.2)
+  gurn(-25, fb="forward", tp="pivot", speed=200)
+  straight(160)
+  gurn(45, fb="forward", tp="tank", speed=100)
+  straight(60)
+else:
+  # first
+  first = getfirstlaundrycolor(baystatus)
+  baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
   straight(-20)
   grab(oc="open")
   straight(50)
+  lift(ud="downhalf")
 
+  # second
   second = getfirstlaundrycolor(baystatus)
-  if second[0]:
-    lift(ud="downhalf")
-    gurn(25, fb="forward", tp="pivot", speed=200)
+  gurn(25, fb="forward", tp="pivot", speed=200)
+  baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half", grabstatus="open")
+  straight(-40)
+  grab(oc="open")
+  
+  # third
+  third = getfirstlaundrycolor(baystatus)
+  straight(50)
+  lift(ud="downhalf")
+  gurn(25, fb="forward", tp="pivot", speed=200)
+  straight(30)
+  baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
+  straight(-100)
+  grab(oc="open")
+  straight(40)
+  liftasync(ud="up", percentage=1.2)
+  gurn(-25, fb="forward", tp="pivot", speed=200)
+  straight(160)
+  gurn(45, fb="forward", tp="tank", speed=100)
+  straight(60)
+
+
+'''
+if getyellow == False:
+  first = getfirstlaundrycolor(baystatus)
+  baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
+  straight(-20)
+  grab(oc="open")
+  straight(50)
+  lift(ud="downhalf")
+else:
+  lift(ud='up', percentage=0.5)
+  straight(-40)
+  grab(oc="open")
+  liftasync(ud="downhalf")
+  straight(70)
+  grab(oc="close")
+
+second = getfirstlaundrycolor(baystatus)
+if second[0]:
+  gurn(25, fb="forward", tp="pivot", speed=200)
+  if getyellow == False:
     baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half", grabstatus="open")
+  else:
+    liftasync(ud="uphalf")
     straight(-40)
-    grab(oc="open")
-    
-    third = getfirstlaundrycolor(baystatus)
-    if third[0]:
+  straight(-40)
+  grab(oc="open")
+  
+  third = getfirstlaundrycolor(baystatus)
+  if third[0]:
+    if getyellow == False:
       straight(50)
       lift(ud="downhalf")
       gurn(25, fb="forward", tp="pivot", speed=200)
       straight(30)
-      baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
-      straight(-100)
-      grab(oc="open")
-      straight(40)
-      liftasync(ud="up", percentage=1.2)
-      gurn(-25, fb="forward", tp="pivot", speed=200)
-      straight(200)
-      gurn(45, fb="forward", tp="tank", speed=100)
-      straight(15)
     else:
-      liftasync(ud="up", percentage=1.2)
-      straight(280)
-      gurn(45, fb="forward", tp="tank", speed=100)
-      straight(10)
-      lift(ud="up", percentage=1.2)
-  else:
-    gurn(30, fb="forward", tp="pivot", speed=200)
+      straight(40)
+      lift(ud="downhalf")
+      gurn(18, fb="forward", tp="pivot", speed=200)
+    baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
+    straight(-100)
+    grab(oc="open")
+    straight(40)
     liftasync(ud="up", percentage=1.2)
-    straight(220)
+    gurn(-25, fb="forward", tp="pivot", speed=200)
+    straight(160)
     gurn(45, fb="forward", tp="tank", speed=100)
-    straight(-20)
+    straight(60)
+  else:
+    liftasync(ud="up", percentage=1.2)
+    straight(280)
+    gurn(45, fb="forward", tp="tank", speed=100)
+    straight(10)
+    lift(ud="up", percentage=1.2)
+else:
+  gurn(30, fb="forward", tp="pivot", speed=200)
+  liftasync(ud="up", percentage=1.2)
+  straight(220)
+  gurn(45, fb="forward", tp="tank", speed=100)
+  straight(-20)
 else: # ~8 seconds
   gurn(30, fb="forward", tp="tank", speed=80)
   grab(oc="open")
@@ -771,5 +847,6 @@ else: # ~8 seconds
   straight(280)
   gurn(45, fb="forward", tp="tank", speed=100)
   straight(-30)
+'''
 
 print(time.time() - starttime)
