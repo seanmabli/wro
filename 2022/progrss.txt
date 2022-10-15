@@ -50,3 +50,8 @@ blue box to laundry:
   - turned to little while in base (1)
   - missed sweep after box (laundry, ball) (1)
   - missed sweep after box (laundry, water) (1)
+
+
+  10 runs 10/15/22  successfully completed: 0/10
+  - run #1: Bad - lost black laundry in green, lost yellow + dropped water in blue
+  - run #2: 

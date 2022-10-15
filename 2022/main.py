@@ -399,7 +399,7 @@ grabtowater = 63
 grabtolaundry = 47
 grabtoback = 248
 
-def frombay(baystatus, object, position, liftheight="full", grabstatus="close"):
+def frombay(baystatus, object, position, liftheight="full", grabstatus="close", pickup=True):
   if object["type"] not in ["water", "laundry"]:
     raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
@@ -408,6 +408,8 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close"):
     raise Exception('lift must be "full" or "half"')
   if grabstatus not in ["close", "open"]:
     raise Exception('grabstatus must be "close" or "open"')
+  if pickup not in [True, False]:
+    raise Exception('pickup must be True or False')
   
   dis = 0
   for i, item in enumerate(reversed(baystatus)):
@@ -435,14 +437,21 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close"):
     grab(oc='open')
   straight(dis)
   grab(oc='close')
-  if liftheight == "full":
-    lift(ud='up')
-  else:
-    lift(ud='up', percentage=0.5)
-  straight(-dis - 35)
+  if pickup:
+    if liftheight == "full":
+      lift(ud='up')
+    else:
+      lift(ud='up', percentage=0.5)
+    straight(-dis - 35)
 
-  baystatus.remove(object)
+    baystatus.remove(object)
   return baystatus
+
+def getfirstlaundrycolor(baystatus):
+  for i in reversed(baystatus):
+    if i["type"] == "laundry":
+      return True, i["color"]
+  return False, None
 
 ev3 = EV3Brick()
 ev3.screen.clear()
@@ -558,11 +567,24 @@ def redandbluebox(baystatus):
       lift(ud="down", percentage=0.6)
       grab(oc="open")
       straight(50)
-      grabasync(oc="close")
-      lift(ud="down", percentage=0.4)
-      straight(25)
-      gurn(80, fb="forward", tp="pivot", speed=200)
-  
+
+      numoflaundry = 0
+      for i in baystatus:
+        if i["type"] == "laundry":
+          numoflaundry += 1
+
+      if numoflaundry == 3:
+        first = getfirstlaundrycolor(baystatus)[1]
+        lift(ud="down", percentage=0.4)
+        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", pickup=False)
+        gurn(90, fb="forward", tp="tank", speed=200)
+        straight(30)
+      else:
+        grabasync(oc="close")
+        lift(ud="down", percentage=0.4)
+        straight(15)
+        gurn(90, fb="forward", tp="pivot", speed=200)
+
   return baystatus
 
 # red box
@@ -642,9 +664,9 @@ else:
     grab(oc="close")
     straight(-70)
     gurn(-40, fb="backward", tp="pivot", speed=200)
-    straight(-50)
+    straight(-20)
     baystatus = frombay(baystatus, {"type" : "water"}, "back")
-    straight(-15)
+    straight(-45)
     lift(ud="down", percentage=0.6)
     grab(oc="open")
     straight(60)
@@ -704,13 +726,7 @@ straight(230)
 gurn(-90, fb="forward", tp="pivot", speed=200)    
 lfpidBlack(sensor=LeftColor, sideofsensor='in', blacks=1)
 
-# new laundry dropoff
-def getfirstlaundrycolor(baystatus):
-  for i in reversed(baystatus):
-    if i["type"] == "laundry":
-      return True, i["color"]
-  return False, None
-
+# laundry dropoff
 gurn(160, fb="forward", tp="tank", speed=80)
 
 print(time.time() - starttime)
@@ -738,10 +754,12 @@ if getyellow:
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
   straight(-100)
   grab(oc="open")
+
+  # back to base
   straight(40)
   liftasync(ud="up", percentage=1.2)
   gurn(-25, fb="forward", tp="pivot", speed=200)
-  straight(160)
+  straight(200)
   gurn(45, fb="forward", tp="tank", speed=100)
   straight(60)
 else:
@@ -769,84 +787,13 @@ else:
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
   straight(-100)
   grab(oc="open")
+
+  # back to base
   straight(40)
   liftasync(ud="up", percentage=1.2)
   gurn(-25, fb="forward", tp="pivot", speed=200)
-  straight(160)
+  straight(200)
   gurn(45, fb="forward", tp="tank", speed=100)
-  straight(60)
-
-
-'''
-if getyellow == False:
-  first = getfirstlaundrycolor(baystatus)
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
-  straight(-20)
-  grab(oc="open")
-  straight(50)
-  lift(ud="downhalf")
-else:
-  lift(ud='up', percentage=0.5)
-  straight(-40)
-  grab(oc="open")
-  liftasync(ud="downhalf")
-  straight(70)
-  grab(oc="close")
-
-second = getfirstlaundrycolor(baystatus)
-if second[0]:
-  gurn(25, fb="forward", tp="pivot", speed=200)
-  if getyellow == False:
-    baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half", grabstatus="open")
-  else:
-    liftasync(ud="uphalf")
-    straight(-40)
-  straight(-40)
-  grab(oc="open")
-  
-  third = getfirstlaundrycolor(baystatus)
-  if third[0]:
-    if getyellow == False:
-      straight(50)
-      lift(ud="downhalf")
-      gurn(25, fb="forward", tp="pivot", speed=200)
-      straight(30)
-    else:
-      straight(40)
-      lift(ud="downhalf")
-      gurn(18, fb="forward", tp="pivot", speed=200)
-    baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
-    straight(-100)
-    grab(oc="open")
-    straight(40)
-    liftasync(ud="up", percentage=1.2)
-    gurn(-25, fb="forward", tp="pivot", speed=200)
-    straight(160)
-    gurn(45, fb="forward", tp="tank", speed=100)
-    straight(60)
-  else:
-    liftasync(ud="up", percentage=1.2)
-    straight(280)
-    gurn(45, fb="forward", tp="tank", speed=100)
-    straight(10)
-    lift(ud="up", percentage=1.2)
-else:
-  gurn(30, fb="forward", tp="pivot", speed=200)
-  liftasync(ud="up", percentage=1.2)
-  straight(220)
-  gurn(45, fb="forward", tp="tank", speed=100)
-  straight(-20)
-else: # ~8 seconds
-  gurn(30, fb="forward", tp="tank", speed=80)
-  grab(oc="open")
-  straight(130)
-  grab(oc="close")
-  straight(-150)
-  liftasync(ud="upfull")
-  grabasync(oc="open", percentage=1.2)
-  straight(280)
-  gurn(45, fb="forward", tp="tank", speed=100)
-  straight(-30)
-'''
+  straight(20)
 
 print(time.time() - starttime)

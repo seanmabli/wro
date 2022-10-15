@@ -47,3 +47,11 @@ number of runs: 6
      red ball, green water, blue ball - 8: successful
      red ball, green water, blue ball - 9: successful
      red ball, green awter, blue ball - 10: successful
+
+
+     10/15/22 10 run test - 3/4 successful
+
+     #1 red ball, green water, blue water - dropped lack laundry 
+     #2 red ball, green water, blue water - successful
+     #3 red water, green ball, blue ball - successful
+     #4 red water, green ball, blue water - successful 1:25 seconds
