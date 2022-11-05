@@ -55,3 +55,15 @@ number of runs: 6
      #2 red ball, green water, blue water - successful
      #3 red water, green ball, blue ball - successful
      #4 red water, green ball, blue water - successful 1:25 seconds
+
+
+     11/4/22 - 10 run test    0/10 successful
+        red ball, green water, blue water - unsuccessful: out of base, time = 123.4
+        red water + laundry, green ball, blue water - unsuccessful: miss scan green marking Block
+        red water + laundry, green ball, blue water - unsuccessful: miss scan green marking block
+        red water + laundry, green ball, blue water - unsuccessful: miss scan green marking block
+        red water + laundry, green ball, blue water - unsuccessful: miss scan green marking block
+        red water + laundry, green ball, blue water - unsuccessful: spun and ran into wall
+
+        **********************************WE NEED TO FINISH PROGRAM WITH WHITE AND LAUNDRY IN BLUE **********************************************************************************
+        ********************************************************************************************

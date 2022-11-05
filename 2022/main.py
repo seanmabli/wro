@@ -13,7 +13,7 @@ RightMotor = Motor(Port.B, Direction.COUNTERCLOCKWISE)
 LeftMotor = Motor(Port.C, Direction.COUNTERCLOCKWISE)
 LiftMotor = Motor(Port.D, Direction.COUNTERCLOCKWISE)
 
-Gyro = GyroSensor(Port.S1)
+# Gyro = GyroSensor(Port.S1)
 LeftColor = ColorSensor(Port.S2)
 RightColor = ColorSensor(Port.S3)
 FrontColor = ColorSensor(Port.S4)
@@ -455,12 +455,12 @@ def getfirstlaundrycolor(baystatus):
 
 ev3 = EV3Brick()
 ev3.screen.clear()
-startangle = Gyro.angle()
+# startangle = Gyro.angle()
 while Button.CENTER not in ev3.buttons.pressed():
   pass
-print(Gyro.angle() - startangle)
+# print(Gyro.angle() - startangle)
 
-Gyro.reset_angle(0)
+# Gyro.reset_angle(0)
 starttime = time.time()
 
 baystatus = []
@@ -532,8 +532,8 @@ def redandbluebox(baystatus):
       straight(50)
       grabasync(oc="close")
       lift(ud="down", percentage=0.4)
-      straight(15)
-      gurn(90, fb="forward", tp="pivot", speed=200)
+      straight(20)
+      gurn(92, fb="forward", tp="pivot", speed=200)
   else:
     straight(30)
     gurn(-38, fb="forward", tp="pivot", speed=200)
@@ -582,8 +582,8 @@ def redandbluebox(baystatus):
       else:
         grabasync(oc="close")
         lift(ud="down", percentage=0.4)
-        straight(15)
-        gurn(90, fb="forward", tp="pivot", speed=200)
+        straight(25)
+        gurn(92, fb="forward", tp="pivot", speed=200)
 
   return baystatus
 
@@ -734,7 +734,7 @@ print(time.time() - starttime)
 if getyellow:
   # first
   lift(ud='up', percentage=0.5)
-  straight(-40)
+  straight(-45)
   grab(oc="open")
   liftasync(ud="downhalf")
   straight(70)
@@ -743,12 +743,12 @@ if getyellow:
   # second
   gurn(25, fb="forward", tp="pivot", speed=200)
   liftasync(ud="uphalf")
-  straight(-80)
+  straight(-90)
   grab(oc="open")
       
   # third
   third = getfirstlaundrycolor(baystatus)
-  straight(40)
+  straight(50)
   lift(ud="downhalf")
   gurn(18, fb="forward", tp="pivot", speed=200)
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
@@ -758,13 +758,13 @@ if getyellow:
   # back to base
   straight(40)
   liftasync(ud="up", percentage=1.2)
-  gurn(-25, fb="forward", tp="pivot", speed=200)
-  straight(200)
-  gurn(45, fb="forward", tp="tank", speed=100)
-  straight(60)
+  gurn(-20, fb="forward", tp="pivot", speed=200)
+  straight(180)
+  gurn(48, fb="forward", tp="tank", speed=100)
+  straight(90)
 else:
   # first
-  first = getfirstlaundrycolor(baystatus)
+  first = getfirstlaundrycolor(baystatus) 
   baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
   straight(-20)
   grab(oc="open")
