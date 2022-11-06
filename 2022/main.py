@@ -399,7 +399,7 @@ grabtowater = 63
 grabtolaundry = 47
 grabtoback = 248
 
-def frombay(baystatus, object, position, liftheight="full", grabstatus="close", pickup=True):
+def frombay(baystatus, object, position, liftheight="full", grabstatus="close", liftstatus=0, pickup=True, realdistance=None, constant=None):
   if object["type"] not in ["water", "laundry"]:
     raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
@@ -410,6 +410,13 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     raise Exception('grabstatus must be "close" or "open"')
   if pickup not in [True, False]:
     raise Exception('pickup must be True or False')
+  if not pickup:
+    if realdistance == None:
+      raise Exception('realdistance must be a number')
+    if realdistance < 0:
+      raise Exception('realdistance must be positive')
+  if constant not in [None, "blueball", "bluewater"]:
+    raise Exception('constant must be None or "blueball" or "bluewater"')
   
   dis = 0
   for i, item in enumerate(reversed(baystatus)):
@@ -433,9 +440,18 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     if object == item:
       break
   
+  blueballconstant = 0
+  bluewaterconstant = -5
+
+  if constant == "blueball":
+    dis += blueballconstant
+  elif constant == "bluewater":
+    dis += bluewaterconstant
+
   if grabstatus == "close":
     grab(oc='open')
   straight(dis)
+  lift(ud="down", percentage=liftstatus)
   grab(oc='close')
   if pickup:
     if liftheight == "full":
@@ -445,6 +461,11 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     straight(-dis - 35)
 
     baystatus.remove(object)
+
+  else:
+    print("finish discance: " + str(realdistance - dis))
+    straight(realdistance - dis)
+
   return baystatus
 
 def getfirstlaundrycolor(baystatus):
@@ -536,7 +557,7 @@ def redandbluebox(baystatus):
       gurn(92, fb="forward", tp="pivot", speed=200)
   else:
     straight(30)
-    gurn(-38, fb="forward", tp="pivot", speed=200)
+    gurn(-40, fb="forward", tp="pivot", speed=200)
     grab(oc="open")
     straight(-150)
     if markingBlockColor == Color.GREEN: # ball
@@ -550,12 +571,25 @@ def redandbluebox(baystatus):
       straight(-90)
       lift(ud="downhalf")
       grab(oc="open")
-      straight(60)
-      grabasync(oc="close")
-      lift(ud="downhalf")
-      straight(80)
-      gurn(75, fb="forward", tp="pivot", speed=200)
-      straight(60)
+
+      numoflaundry = 0
+      for i in baystatus:
+        if i["type"] == "laundry":
+          numoflaundry += 1
+
+      if numoflaundry == 3:
+        lift(ud="downhalf")
+        first = getfirstlaundrycolor(baystatus)[1]
+        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", pickup=False, realdistance=140, constant="blueball")
+        gurn(75, fb="forward", tp="pivot", speed=200)
+        straight(60)
+      else:
+        straight(60)
+        grabasync(oc="close")
+        lift(ud="downhalf")
+        straight(80)
+        gurn(75, fb="forward", tp="pivot", speed=200)
+        straight(60)
     elif markingBlockColor == Color.WHITE: # water
       grab(oc="close")
       straight(30)
@@ -566,7 +600,6 @@ def redandbluebox(baystatus):
       straight(-40)
       lift(ud="down", percentage=0.6)
       grab(oc="open")
-      straight(50)
 
       numoflaundry = 0
       for i in baystatus:
@@ -575,11 +608,11 @@ def redandbluebox(baystatus):
 
       if numoflaundry == 3:
         first = getfirstlaundrycolor(baystatus)[1]
-        lift(ud="down", percentage=0.4)
-        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", pickup=False)
+        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", liftstatus=0.4, pickup=False, realdistance=170, constant="bluewater")
         gurn(90, fb="forward", tp="tank", speed=200)
         straight(30)
       else:
+        straight(50)
         grabasync(oc="close")
         lift(ud="down", percentage=0.4)
         straight(25)
@@ -657,15 +690,14 @@ else:
     straight(60)
     grabasync(oc="close")
     lift(ud="downhalf")
-    straight(70)
+    straight(65)
     gurn(-70, fb="forward", tp="pivot", speed=200)
     straight(60)
   elif markingBlockColor == Color.WHITE: # water
-    grab(oc="close")
     straight(-70)
     gurn(-40, fb="backward", tp="pivot", speed=200)
     straight(-20)
-    baystatus = frombay(baystatus, {"type" : "water"}, "back")
+    baystatus = frombay(baystatus, {"type" : "water"}, "back", grabstatus="open")
     straight(-45)
     lift(ud="down", percentage=0.6)
     grab(oc="open")
@@ -731,69 +763,35 @@ gurn(160, fb="forward", tp="tank", speed=80)
 
 print(time.time() - starttime)
 
-if getyellow:
-  # first
-  lift(ud='up', percentage=0.5)
-  straight(-45)
-  grab(oc="open")
-  liftasync(ud="downhalf")
-  straight(70)
-  grab(oc="close")
+# first
+lift(ud='up', percentage=0.5)
+straight(-45)
+grab(oc="open")
+liftasync(ud="downhalf")
+straight(70)
+grab(oc="close")
 
-  # second
-  gurn(25, fb="forward", tp="pivot", speed=200)
-  liftasync(ud="uphalf")
-  straight(-90)
-  grab(oc="open")
-      
-  # third
-  third = getfirstlaundrycolor(baystatus)
-  straight(50)
-  lift(ud="downhalf")
-  gurn(18, fb="forward", tp="pivot", speed=200)
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
-  straight(-100)
-  grab(oc="open")
+# second
+gurn(25, fb="forward", tp="pivot", speed=200)
+liftasync(ud="uphalf")
+straight(-90)
+grab(oc="open")
+    
+# third
+third = getfirstlaundrycolor(baystatus)
+straight(50)
+lift(ud="downhalf")
+gurn(18, fb="forward", tp="pivot", speed=200)
+baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
+straight(-80)
+grab(oc="open")
 
-  # back to base
-  straight(40)
-  liftasync(ud="up", percentage=1.2)
-  gurn(-20, fb="forward", tp="pivot", speed=200)
-  straight(180)
-  gurn(48, fb="forward", tp="tank", speed=100)
-  straight(90)
-else:
-  # first
-  first = getfirstlaundrycolor(baystatus) 
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : first[1]}, "front", liftheight="half")
-  straight(-20)
-  grab(oc="open")
-  straight(50)
-  lift(ud="downhalf")
-
-  # second
-  second = getfirstlaundrycolor(baystatus)
-  gurn(25, fb="forward", tp="pivot", speed=200)
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : second[1]}, "front", liftheight="half", grabstatus="open")
-  straight(-40)
-  grab(oc="open")
-  
-  # third
-  third = getfirstlaundrycolor(baystatus)
-  straight(50)
-  lift(ud="downhalf")
-  gurn(25, fb="forward", tp="pivot", speed=200)
-  straight(30)
-  baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
-  straight(-100)
-  grab(oc="open")
-
-  # back to base
-  straight(40)
-  liftasync(ud="up", percentage=1.2)
-  gurn(-25, fb="forward", tp="pivot", speed=200)
-  straight(200)
-  gurn(45, fb="forward", tp="tank", speed=100)
-  straight(20)
+# back to base
+straight(40)
+liftasync(ud="up", percentage=1.2)
+gurn(-20, fb="forward", tp="pivot", speed=200)
+straight(180)
+gurn(48, fb="forward", tp="tank", speed=100)
+straight(70)
 
 print(time.time() - starttime)

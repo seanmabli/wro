@@ -65,5 +65,6 @@ number of runs: 6
         red water + laundry, green ball, blue water - unsuccessful: miss scan green marking block
         red water + laundry, green ball, blue water - unsuccessful: spun and ran into wall
 
-        **********************************WE NEED TO FINISH PROGRAM WITH WHITE AND LAUNDRY IN BLUE **********************************************************************************
-        ********************************************************************************************
+
+*** WORK ON RED/BLUE LAUNDRY GETTING CAUGHT DIAGONALLY IN BAY ON WATER + LAUNDRY ***
+*** WORK ON REMOVING SWEEP AFTER GREEN BAY ***
