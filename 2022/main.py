@@ -440,7 +440,7 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     if object == item:
       break
   
-  blueballconstant = 0
+  blueballconstant = -5
   bluewaterconstant = -5
 
   if constant == "blueball":
@@ -690,7 +690,7 @@ else:
     straight(60)
     grabasync(oc="close")
     lift(ud="downhalf")
-    straight(65)
+    straight(50)
     gurn(-70, fb="forward", tp="pivot", speed=200)
     straight(60)
   elif markingBlockColor == Color.WHITE: # water
@@ -709,8 +709,10 @@ else:
     gurn(-90, fb="forward", tp="pivot", speed=200)
 
 # green box to blue box
-sweep(sensor=RightColor, direction="left")
-lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1)
+robot.drive(180, 0)
+while (RightColor.reflection() + LeftColor.reflection()) / 2 > 20:
+  pass
+robot.stop()
 gurn(95, fb="forward", tp="pivot", speed=200)
 sweep(sensor=RightColor, direction="right")
 lfpidBlack(sensor=RightColor, sideofsensor='out', blacks=1)
@@ -792,6 +794,11 @@ liftasync(ud="up", percentage=1.2)
 gurn(-20, fb="forward", tp="pivot", speed=200)
 straight(180)
 gurn(48, fb="forward", tp="tank", speed=100)
-straight(70)
+straight(60)
+
+robot.drive(-60, 0)
+while (LeftColor.reflection() + RightColor.reflection()) / 2 < 65:
+  print((LeftColor.reflection() + RightColor.reflection()) / 2) if (LeftColor.reflection() + RightColor.reflection()) / 2 > 50 else None
+robot.stop()
 
 print(time.time() - starttime)
