@@ -441,7 +441,7 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
       break
   
   blueballconstant = -5
-  bluewaterconstant = -5
+  bluewaterconstant = -15
 
   if constant == "blueball":
     dis += blueballconstant
@@ -463,7 +463,7 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     baystatus.remove(object)
 
   else:
-    print("finish discance: " + str(realdistance - dis))
+    print("finish distance: " + str(realdistance - dis))
     straight(realdistance - dis)
 
   return baystatus
@@ -527,7 +527,18 @@ def redandbluebox(baystatus):
     baystatus.append({"type" : "laundry", "color" : color})
     RightMotor.run_angle(-150, -30)
   if color == None:
-    if markingBlockColor == Color.GREEN: # ball
+    if markingBlockColor == Color.WHITE: # water
+      gurn(140, fb="backward", tp="pivot", speed=200)
+      baystatus = frombay(baystatus, {"type" : "water"}, "back")
+      straight(-20)
+      lift(ud="down", percentage=0.6)
+      grab(oc="open")
+      straight(50)
+      grabasync(oc="close")
+      lift(ud="down", percentage=0.4)
+      straight(20)
+      gurn(92, fb="forward", tp="pivot", speed=200)
+    else: # ball
       gurn(40, fb="backward", tp="pivot", speed=200)
       grab(oc="open", percentage=1.25)
       straight(-115)
@@ -544,23 +555,39 @@ def redandbluebox(baystatus):
       straight(90)
       gurn(60, fb="forward", tp="pivot", speed=200)
       straight(20)
-    else: # water
-      gurn(140, fb="backward", tp="pivot", speed=200)
-      baystatus = frombay(baystatus, {"type" : "water"}, "back")
-      straight(-20)
-      lift(ud="down", percentage=0.6)
-      grab(oc="open")
-      straight(50)
-      grabasync(oc="close")
-      lift(ud="down", percentage=0.4)
-      straight(20)
-      gurn(92, fb="forward", tp="pivot", speed=200)
   else:
     straight(30)
     gurn(-40, fb="forward", tp="pivot", speed=200)
     grab(oc="open")
     straight(-150)
-    if markingBlockColor == Color.GREEN: # ball
+    if markingBlockColor == Color.WHITE: # water
+      grab(oc="close")
+      straight(30)
+      gurn(100, fb="backward", tp="pivot", speed=200)
+      gurn(-47, fb="forward", tp="pivot", speed=200)
+      straight(-60)
+      baystatus = frombay(baystatus, {"type" : "water"}, "back")
+      straight(-20)
+      lift(ud="down", percentage=0.6)
+      grab(oc="open")
+
+      numoflaundry = 0
+      for i in baystatus:
+        if i["type"] == "laundry":
+          numoflaundry += 1
+
+      if numoflaundry == 3:
+        first = getfirstlaundrycolor(baystatus)[1]
+        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", liftstatus=0.4, pickup=False, realdistance=170, constant="bluewater")
+        gurn(90, fb="forward", tp="tank", speed=100)
+        straight(30)
+      else:
+        straight(50)
+        grabasync(oc="close")
+        lift(ud="down", percentage=0.4)
+        straight(25)
+        gurn(92, fb="forward", tp="pivot", speed=200)
+    else: # ball
       grab(oc="open", percentage=0.25)
       gurn(47, fb="backward", tp="pivot", speed=200)
       straight(-65)
@@ -588,35 +615,8 @@ def redandbluebox(baystatus):
         grabasync(oc="close")
         lift(ud="downhalf")
         straight(80)
-        gurn(75, fb="forward", tp="pivot", speed=200)
+        gurn(70, fb="forward", tp="pivot", speed=200)
         straight(60)
-    elif markingBlockColor == Color.WHITE: # water
-      grab(oc="close")
-      straight(30)
-      gurn(100, fb="backward", tp="pivot", speed=200)
-      gurn(-50, fb="forward", tp="pivot", speed=200)
-      straight(-60)
-      baystatus = frombay(baystatus, {"type" : "water"}, "back")
-      straight(-40)
-      lift(ud="down", percentage=0.6)
-      grab(oc="open")
-
-      numoflaundry = 0
-      for i in baystatus:
-        if i["type"] == "laundry":
-          numoflaundry += 1
-
-      if numoflaundry == 3:
-        first = getfirstlaundrycolor(baystatus)[1]
-        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", liftstatus=0.4, pickup=False, realdistance=170, constant="bluewater")
-        gurn(90, fb="forward", tp="tank", speed=200)
-        straight(30)
-      else:
-        straight(50)
-        grabasync(oc="close")
-        lift(ud="down", percentage=0.4)
-        straight(25)
-        gurn(92, fb="forward", tp="pivot", speed=200)
 
   return baystatus
 
@@ -625,7 +625,7 @@ baystatus = redandbluebox(baystatus)
 
 # red box to green box
 sweep(sensor=RightColor, direction="left")
-lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, startncap=160, kp=0.45)
+lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, startncap=160, kp=0.6)
 lfpidDistance(distance=90, sensor=RightColor, sideofsensor='in', startncap=155)
 gurn(-90, fb="forward", tp="pivot", speed=150)
 straight(20)
@@ -641,7 +641,19 @@ if color != None:
   baystatus.append({"type" : "laundry", "color" : color})
   RightMotor.run_angle(-150, -30)
 if color == None:
-  if markingBlockColor == Color.GREEN: # ball
+  if markingBlockColor == Color.WHITE: # water
+    gurn(10, fb="backward", tp="pivot", speed=200)
+    straight(-90)
+    gurn(-55, fb="backward", tp="pivot", speed=200)
+    baystatus = frombay(baystatus, {"type" : "water"}, "back")
+    lift(ud="down", percentage=0.6)
+    grab(oc="open")
+    straight(50)
+    grabasync(oc="close")
+    lift(ud="down", percentage=0.4)
+    straight(35)
+    gurn(-90, fb="forward", tp="pivot", speed=200)
+  else: # ball
     gurn(50, fb="backward", tp="pivot", speed=200)
     grab(oc="open", percentage=1.25)
     straight(-90)
@@ -655,28 +667,27 @@ if color == None:
     straight(70)
     grabasync(oc="close")
     lift(ud="downhalf")
-    straight(80)
-    # add recapture here later
+    straight(20)
     gurn(-75, fb="forward", tp="pivot", speed=200)
     straight(40)
-  else: # water
-    gurn(10, fb="backward", tp="pivot", speed=200)
-    straight(-90)
-    gurn(-55, fb="backward", tp="pivot", speed=200)
-    baystatus = frombay(baystatus, {"type" : "water"}, "back")
-    lift(ud="down", percentage=0.6)
-    grab(oc="open")
-    straight(50)
-    grabasync(oc="close")
-    lift(ud="down", percentage=0.4)
-    straight(35)
-    gurn(-90, fb="forward", tp="pivot", speed=200)
 else:
   straight(30)
   gurn(-43, fb="forward", tp="pivot", speed=200)
   grab(oc="open")
   straight(-150)
-  if markingBlockColor == Color.GREEN: # ball
+  if markingBlockColor == Color.WHITE: # water
+    straight(-70)
+    gurn(-40, fb="backward", tp="pivot", speed=200)
+    straight(-20)
+    baystatus = frombay(baystatus, {"type" : "water"}, "back", grabstatus="open")
+    straight(-35)
+    lift(ud="down", percentage=0.6)
+    grab(oc="open")
+    straight(60)
+    grabasync(oc="close")
+    lift(ud="down", percentage=0.4)
+    gurn(-90, fb="forward", tp="pivot", speed=200)
+  else: # ball
     grab(oc="open", percentage=0.25)
     gurn(48, fb="backward", tp="pivot", speed=200)
     straight(-40)
@@ -693,27 +704,13 @@ else:
     straight(50)
     gurn(-70, fb="forward", tp="pivot", speed=200)
     straight(60)
-  elif markingBlockColor == Color.WHITE: # water
-    straight(-70)
-    gurn(-40, fb="backward", tp="pivot", speed=200)
-    straight(-20)
-    baystatus = frombay(baystatus, {"type" : "water"}, "back", grabstatus="open")
-    straight(-45)
-    lift(ud="down", percentage=0.6)
-    grab(oc="open")
-    straight(60)
-    grabasync(oc="close")
-    lift(ud="down", percentage=0.4)
-    straight(5)
-    # add recapture here later
-    gurn(-90, fb="forward", tp="pivot", speed=200)
 
 # green box to blue box
 robot.drive(180, 0)
-while (RightColor.reflection() + LeftColor.reflection()) / 2 > 20:
+while (RightColor.reflection() + LeftColor.reflection()) / 2 > 15:
   pass
 robot.stop()
-gurn(95, fb="forward", tp="pivot", speed=200)
+gurn(110, fb="forward", tp="pivot", speed=200)
 sweep(sensor=RightColor, direction="right")
 lfpidBlack(sensor=RightColor, sideofsensor='out', blacks=1)
 lfpidDistance(distance=200, sensor=RightColor, sideofsensor='out')
