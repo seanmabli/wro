@@ -22,7 +22,7 @@ robot = DriveBase(LeftMotor, RightMotor, wheel_diameter=94.2, axle_track=157)
 robot.settings(straight_speed=300)
 
 def lfBlack(Sensor, ProportionalGain=1):
-  Threshold = (9 + 74) / 2 # Black = 9, White = 74
+  Threshold = (8 + 76) / 2 # Black  = 8, White = 76
   while (LeftColor.reflection() + RightColor.reflection()) / 2 > 15:
     if(Sensor == LeftColor):
       Deviation = - (LeftColor.reflection() - Threshold)
@@ -37,7 +37,7 @@ def lfDistance(sensor, distance, sideofsensor, proportionalGain=0.5, startncap=[
   if sideofsensor not in ['in', 'out']:
     raise Exception('sideofsensor must be "in" or "out"')
 
-  threshold = (9 + 74) / 2 # Black = 9, White = 74
+  threshold = (8 + 76) / 2 # Black  = 8, White = 76
   sideofsensor = -1 if sideofsensor == 'in' else 1
   robot.reset()
 
@@ -80,7 +80,7 @@ def lfpidDistance(distance, sensor=RightColor, sideofsensor='in', startncap=[], 
     speed = list(range(startncap[0], startncap[1]))
     one = False
 
-  target = (9 + 74) / 2 # Black = 9, White = 74
+  target = (8 + 76) / 2 # Black  = 8, White = 76
   gyrodev = []
   error = 0
   lasterror = 0
@@ -134,7 +134,7 @@ def lfpidBlack(sensor=RightColor, sideofsensor='in', blacks=1, waitdistance=25, 
   else:
     speed = list(range(startncap[0], startncap[1], 1 if startncap[0] < startncap[1] else -1))
   
-  target = (9 + 74) / 2 # Black = 9, White = 74
+  target = (8 + 76) / 2 # Black  = 8, White = 76
   error = 0
   lasterror = 0
   integral = 0
@@ -248,7 +248,7 @@ def sweep(sensor, direction, speed=50):
 
   startangle = robot.angle()
   info = []
-  target = (9 + 74) / 2 # Black = 9, White = 74
+  target = (8 + 76) / 2 # Black  = 8, White = 76
   
   if direction == 'right':
     robot.drive(0, speed)
@@ -281,7 +281,7 @@ def sweep(sensor, direction, speed=50):
 
   gurn(robot.angle() - targetangle, tp='tank', fb='forward', speed=speed)
 
-def grab(oc='open', percentage=1):
+def grab(oc='open', percentage=1, pinch=True):
   if oc == 'open':
     GrabMotor.stop()
     time.sleep(0.1)
@@ -289,9 +289,11 @@ def grab(oc='open', percentage=1):
   elif oc == 'close':
     GrabMotor.run(-400)
     time.sleep(0.6 * percentage)
+    if not pinch:
+      GrabMotor.stop()
 
-def grabasync(oc='open', percentage=1):
-  _thread.start_new_thread(grab, (oc, percentage))
+def grabasync(oc='open', percentage=1, pinch=True):
+  _thread.start_new_thread(grab, (oc, percentage, pinch))
 
 def lift(ud='up', percentage=1):
   if ud == 'up':
@@ -358,7 +360,7 @@ def newColorScan(acceptable, direction):
     return color
 
 def LineSquaring(Num):
-  THRESHOLD = (9 + 70) / 2
+  THRESHOLD = (8 + 76) / 2
   # Move Forward To White
   while LeftColor.color() != Color.WHITE or RightColor.color() != Color.WHITE:
     robot.drive(-50 * Num, 0)
@@ -404,8 +406,8 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
     raise Exception('object must be {"type" : "water"} or {"type" : "laundry", "color" : (Color.RED or Color.YELLOW or Color.Black)}')
   if position not in ["front", "back"]:
     raise Exception('position must be "front" or "back"')
-  if liftheight not in ["full", "half"]:
-    raise Exception('lift must be "full" or "half"')
+  if liftheight not in ["full", "half"] and type(liftheight) != float:
+    raise Exception('lift must be "full" or "half" or a number')
   if grabstatus not in ["close", "open"]:
     raise Exception('grabstatus must be "close" or "open"')
   if pickup not in [True, False]:
@@ -456,8 +458,10 @@ def frombay(baystatus, object, position, liftheight="full", grabstatus="close", 
   if pickup:
     if liftheight == "full":
       lift(ud='up')
-    else:
+    elif liftheight == "half":
       lift(ud='up', percentage=0.5)
+    else:
+      lift(ud='up', percentage=liftheight)
     straight(-dis - 35)
 
     baystatus.remove(object)
@@ -583,7 +587,7 @@ def redandbluebox(baystatus):
         straight(30)
       else:
         straight(50)
-        grabasync(oc="close")
+        grabasync(oc="close", pinch=False)
         lift(ud="down", percentage=0.4)
         straight(25)
         gurn(92, fb="forward", tp="pivot", speed=200)
@@ -607,7 +611,7 @@ def redandbluebox(baystatus):
       if numoflaundry == 3:
         lift(ud="downhalf")
         first = getfirstlaundrycolor(baystatus)[1]
-        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", pickup=False, realdistance=140, constant="blueball")
+        frombay(baystatus, {"type" : "laundry", "color" : first}, "back", grabstatus="open", pickup=False, realdistance=130, constant="blueball")
         gurn(75, fb="forward", tp="pivot", speed=200)
         straight(60)
       else:
@@ -689,7 +693,7 @@ else:
     gurn(-90, fb="forward", tp="pivot", speed=200)
   else: # ball
     grab(oc="open", percentage=0.25)
-    gurn(48, fb="backward", tp="pivot", speed=200)
+    gurn(52, fb="backward", tp="pivot", speed=200)
     straight(-40)
     grab(oc="close", percentage=1.255)
     straight(20)
@@ -699,7 +703,7 @@ else:
     lift(ud="downhalf")
     grab(oc="open")
     straight(60)
-    grabasync(oc="close")
+    grabasync(oc="close", pinch=False)
     lift(ud="downhalf")
     straight(50)
     gurn(-70, fb="forward", tp="pivot", speed=200)
@@ -741,7 +745,7 @@ if numoflaundry < 3:
   baystatus.append({"type" : "laundry", "color" : "none"})
   lfpidDistance(distance=150, sensor=RightColor, sideofsensor='in')
   gurn(-180, fb="forward", tp="tank", speed=100)
-  grabasync(oc="open")
+  grab(oc="open")
   straight(-90)
   grab(oc="close")
   straight(100)
@@ -763,39 +767,44 @@ gurn(160, fb="forward", tp="tank", speed=80)
 print(time.time() - starttime)
 
 # first
-lift(ud='up', percentage=0.5)
+lift(ud='up', percentage=0.4)
 straight(-45)
 grab(oc="open")
-liftasync(ud="downhalf")
+liftasync(ud="down", percentage=0.4)
 straight(70)
 grab(oc="close")
 
 # second
 gurn(25, fb="forward", tp="pivot", speed=200)
-liftasync(ud="uphalf")
+liftasync(ud="up", percentage=0.4)
 straight(-90)
 grab(oc="open")
     
 # third
 third = getfirstlaundrycolor(baystatus)
 straight(50)
-lift(ud="downhalf")
+lift(ud="down", percentage=0.4)
 gurn(18, fb="forward", tp="pivot", speed=200)
-baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight="half", grabstatus="open")
-straight(-80)
+baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight=0.4, grabstatus="open")
+straight(-65)
 grab(oc="open")
 
 # back to base
 straight(40)
-liftasync(ud="up", percentage=1.2)
+liftasync(ud="up", percentage=1.3)
 gurn(-20, fb="forward", tp="pivot", speed=200)
 straight(180)
 gurn(48, fb="forward", tp="tank", speed=100)
-straight(60)
+straight(80)
 
 robot.drive(-60, 0)
-while (LeftColor.reflection() + RightColor.reflection()) / 2 < 65:
-  print((LeftColor.reflection() + RightColor.reflection()) / 2) if (LeftColor.reflection() + RightColor.reflection()) / 2 > 50 else None
+driveback = False 
+while (LeftColor.reflection() + RightColor.reflection()) / 2 < 65: # black = 8, white = 76, blue = ?
+  pass
+  driveback = True
 robot.stop()
+
+if driveback:
+  straight(-10)
 
 print(time.time() - starttime)
