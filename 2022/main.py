@@ -658,7 +658,7 @@ if color == None:
     straight(35)
     gurn(-90, fb="forward", tp="pivot", speed=200)
   else: # ball
-    gurn(50, fb="backward", tp="pivot", speed=200)
+    gurn(54, fb="backward", tp="pivot", speed=200)
     grab(oc="open", percentage=1.25)
     straight(-90)
     grab(oc="close", percentage=1.25)
@@ -768,10 +768,10 @@ print(time.time() - starttime)
 
 # first
 lift(ud='up', percentage=0.4)
-straight(-45)
+straight(-70)
 grab(oc="open")
 liftasync(ud="down", percentage=0.4)
-straight(70)
+straight(85)
 grab(oc="close")
 
 # second
@@ -782,7 +782,7 @@ grab(oc="open")
     
 # third
 third = getfirstlaundrycolor(baystatus)
-straight(50)
+straight(60)
 lift(ud="down", percentage=0.4)
 gurn(18, fb="forward", tp="pivot", speed=200)
 baystatus = frombay(baystatus, {"type" : "laundry", "color" : third[1]}, "front", liftheight=0.4, grabstatus="open")
