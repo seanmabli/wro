@@ -281,13 +281,13 @@ def sweep(sensor, direction, speed=50):
 
   gurn(robot.angle() - targetangle, tp='tank', fb='forward', speed=speed)
 
-def grab(oc='open', percentage=1, pinch=True):
+def grab(oc='open', percentage=1, pinch=True, speed=1):
   if oc == 'open':
     GrabMotor.stop()
     time.sleep(0.1)
-    GrabMotor.run_angle(400, 200 * percentage)
+    GrabMotor.run_angle(400 * speed, 200 * percentage)
   elif oc == 'close':
-    GrabMotor.run(-400)
+    GrabMotor.run(-400 * speed)
     time.sleep(0.6 * percentage)
     if not pinch:
       GrabMotor.stop()
@@ -496,15 +496,14 @@ grabasync(oc="open", percentage=0.4)
 gurn(15, tp='pivot', speed=200)
 straight(465)
 gurn(-63, tp='pivot', speed=200)
-straight(-70)
+starttimecheck1 = time.time()
+straight(-170)
 grab(oc='close', percentage=1.4)
-grab(oc='open')
-straight(-100)
-grab(oc='close')
 straight(210)
 grab(oc='open')
 straight(-100)
-grab(oc='close')
+grab(oc="close")
+print("starttimecheck1:", time.time() - starttimecheck1)
 baystatus.append({"type": "water"})
 baystatus.append({"type": "water"})
 gurn(67, aggresion=90, tp='circle', speed=200)
@@ -591,6 +590,7 @@ def redandbluebox(baystatus):
         lift(ud="down", percentage=0.4)
 
         # NEW START
+        starttimecheck3 = time.time()
         gurn(40, fb="backward", tp="tank", speed=100)
         grabasync(oc="open")
         straight(-150)
@@ -601,6 +601,7 @@ def redandbluebox(baystatus):
         straight(40)
         grab(oc="close")
         straight(20)
+        print("starttimecheck3:", time.time() - starttimecheck3)
         # NEW END
 
     else: # ball
