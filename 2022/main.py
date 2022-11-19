@@ -589,19 +589,8 @@ def redandbluebox(baystatus):
         straight(50)
         grabasync(oc="close", pinch=False)
         lift(ud="down", percentage=0.4)
-
-        # NEW START
-        gurn(40, fb="backward", tp="tank", speed=100)
-        grabasync(oc="open")
-        straight(-150)
-        grab(oc="close")
-        straight(120)
-        gurn(130, fb="forward", tp="pivot", speed=200)
-        grab(oc="open")
-        straight(40)
-        grab(oc="close")
-        straight(20)
-        # NEW END
+        straight(25)
+        gurn(92, fb="forward", tp="pivot", speed=200)
 
     else: # ball
       grab(oc="open", percentage=0.25)
@@ -812,7 +801,6 @@ straight(80)
 robot.drive(-60, 0)
 driveback = False 
 while (LeftColor.reflection() + RightColor.reflection()) / 2 < 65: # black = 8, white = 76, blue = ?
-  pass
   driveback = True
 robot.stop()
 
