@@ -1,10 +1,10 @@
 {
   "configurations": [
       {
-          "name": "Download and Run wro/2022/main.py",
+          "name": "Download and Run wro/develop/linesquaring.py",
           "type": "ev3devBrowser",
           "request": "launch",
-          "program": "/home/robot/wro/2022/surprisechallenge.py"
+          "program": "/home/robot/wro/develop/linesquaring.py"
       }
   ]
 }
